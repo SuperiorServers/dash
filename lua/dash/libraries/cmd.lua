@@ -1,3 +1,5 @@
+require 'term'
+
 cmd = setmetatable({
 	GetTable = setmetatable({}, {
 		__call = function(self)
@@ -49,6 +51,12 @@ local params = {}
 if (SERVER) then
 	util.AddNetworkString 'cmd.Run'
 end
+
+term.Add(cmd.ERROR_MISSING_PARAM, 'Missing argument #: #')
+term.Add(cmd.ERROR_INVALID_PLAYER, 'Could not find player: #')
+term.Add(cmd.ERROR_INVALID_NUMBER, 'Invalid number: #')
+term.Add(cmd.ERROR_INVALID_TIME, 'Invalid time: #')
+term.Add(cmd.ERROR_COMMAND_COOLDOWN, 'You need to wait # seconds to run this command again!')
 
 -- Parsing
 function cmd.AddParam(name, nicename, parse, autocomplete)

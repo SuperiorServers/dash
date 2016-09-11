@@ -47,17 +47,6 @@ function isnumber(v)
 	return (v ~= nil) and (v == tonumber(v))
 end
 
-function isnan(v)
-	return (v ~= v)
-end
-
-local inf = 1/0
-local neginf = -1/0
-
-function isinf(v)
-	return (v == inf) or (v == neginf)
-end
-
 function isbool(v)
 	return (v == true) or (v == false)
 end

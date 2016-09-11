@@ -8,7 +8,7 @@ dash.IncludeSV = (SERVER) and include or function() end
 dash.IncludeCL = (SERVER) and AddCSLuaFile or include
 dash.IncludeSH = function(f) AddCSLuaFile(f) return include(f) end
 
-local function loaddir(...)
+function dash.LoadDir(...)
 	local ret = {}
 	for _, dir in ipairs({...}) do
 		local files, folders = file.Find('dash/' .. dir .. '/*', 'LUA')
@@ -28,13 +28,13 @@ end
 
 local modules = {
 	preload = {
-		Shared = loaddir('preload'),
-		Server = (SERVER) and loaddir('preload/server') or {},
-		Client = loaddir('preload/client'),
+		Shared = dash.LoadDir('preload'),
+		Server = (SERVER) and dash.LoadDir('preload/server') or {},
+		Client = dash.LoadDir('preload/client'),
 	},
-	Shared = loaddir('libraries', 'thirdparty'),
-	Server = (SERVER) and loaddir('libraries/server', 'thirdparty/server') or {},
-	Client = loaddir('libraries/client', 'thirdparty/client'),
+	Shared = dash.LoadDir('libraries', 'thirdparty'),
+	Server = (SERVER) and dash.LoadDir('libraries/server', 'thirdparty/server') or {},
+	Client = dash.LoadDir('libraries/client', 'thirdparty/client'),
 	Loaded = {}
 }
 

@@ -33,7 +33,7 @@ function term.Add(name, message)
 		Name 	= name,
 		Message = message,
 	}
-	if issorted then
+	if issorted and (not mapping[name]) then
 		timer.Create('terms.Sort', 0, 1, function() -- Do this only once the next frame incase we refresh a lot of terms at once
 			table.Empty(terms)
 			table.Empty(mapping)

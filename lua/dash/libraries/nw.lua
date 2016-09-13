@@ -32,10 +32,10 @@ local data 		= {
 local globals 	= data[0]
 local callbacks = {}
 
-local nw_mt 	= {}
-nw_mt.__index 	= nw_mt
+local NETVAR 	= {}
+NETVAR.__index 	= NETVAR
 
-debug.getregistry().nw = nw_mt
+debug.getregistry().Netvar = NETVAR
 
 local bitmap 	= {
 	[3]		= 3,
@@ -58,7 +58,6 @@ local net_ReadUInt 	= net.ReadUInt
 local net_Start 	= net.Start
 local net_Send 		= (SERVER) and net.Send or net.SendToServer
 local net_Broadcast = net.Broadcast
-local net_Broadcast = net.Broadcast
 local player_GetAll = player.GetAll
 local sorted_pairs 	= SortedPairsByMemberValue
 
@@ -76,7 +75,7 @@ function nw.Register(var, info) -- You must always call this on both the client 
 			end
 		end,
 	}
-	setmetatable(t, nw_mt)
+	setmetatable(t, NETVAR)
 	vars[var] = t
 
 	if (SERVER) then
@@ -106,62 +105,62 @@ function nw.Register(var, info) -- You must always call this on both the client 
 	return t:_Construct()
 end
 
-function nw_mt:Write(func, opt)
+function NETVAR:Write(func, opt)
 	self.WriteFunc = function(value)
 		func(value, opt)
 	end
 	return self:_Construct()
 end
 
-function nw_mt:Read(func, opt)
+function NETVAR:Read(func, opt)
 	self.ReadFunc = function()
 		return func(opt)
 	end
 	return self:_Construct()
 end
 
-function nw_mt:Filter(func)
+function NETVAR:Filter(func)
 	self.SendFunc = function(self, ent, value, recipients)
 		net_Send(recipients or func(ent, value))
 	end
 	return self:_Construct()
 end
 
-function nw_mt:SetPlayer()
+function NETVAR:SetPlayer()
 	self.PlayerVar = true
 	return self:_Construct()
 end
 
-function nw_mt:SetLocalPlayer()
+function NETVAR:SetLocalPlayer()
 	self.LocalPlayerVar = true
 	return self:_Construct()
 end
-nw_mt.SetLocal = nw_mt.SetLocalPlayer -- backward support
+NETVAR.SetLocal = NETVAR.SetLocalPlayer -- backward support
 
-function nw_mt:SetGlobal()
+function NETVAR:SetGlobal()
 	self.GlobalVar = true
 	return self:_Construct()
 end
 
-function nw_mt:SetNoSync()
+function NETVAR:SetNoSync()
 	self.NoSync = true
 	return self:_Construct()
 end
 
-function nw_mt:SetHook(name)
+function NETVAR:SetHook(name)
 	self.Hook = name
 	return self
 end
 
-function nw_mt:_Send(ent, value, recipients)
+function NETVAR:_Send(ent, value, recipients)
 	net_Start(self.NetworkString)
 		self:_Write(ent, value)
 	self:SendFunc(ent, value, recipients)
 end
 
-function nw_mt:_CallHook(index, value)
-	if (self.Hook) then
-		if (index != 0) then
+function NETVAR:_CallHook(index, value)
+	if self.Hook then
+		if (index ~= 0) then
 			hook.Call(self.Hook, GAMEMODE, Entity(index), value)
 		else
 			hook.Call(self.Hook, GAMEMODE, value)
@@ -169,7 +168,7 @@ function nw_mt:_CallHook(index, value)
 	end
 end
 
-function nw_mt:_Construct()
+function NETVAR:_Construct()
 	local WriteFunc = self.WriteFunc
 	local ReadFunc 	= self.ReadFunc
 

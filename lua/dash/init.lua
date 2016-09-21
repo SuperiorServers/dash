@@ -1,4 +1,6 @@
 dash = {
+	Modules = {},
+	LoadedModules = {},
 	BadModules = {}
 }
 
@@ -26,45 +28,55 @@ function dash.LoadDir(...)
 	return ret
 end
 
-local modules = {
-	preload = {
-		Shared = dash.LoadDir('preload'),
-		Server = (SERVER) and dash.LoadDir('preload/server') or {},
-		Client = dash.LoadDir('preload/client'),
-	},
-	Shared = dash.LoadDir('libraries', 'thirdparty'),
-	Server = (SERVER) and dash.LoadDir('libraries/server', 'thirdparty/server') or {},
-	Client = dash.LoadDir('libraries/client', 'thirdparty/client'),
-	Loaded = {}
-}
 
-for k, v in pairs(modules.preload.Shared) do
+local preshared = dash.LoadDir('preload')
+local preserver = (SERVER) and dash.LoadDir('preload/server') or {}
+local preclient = dash.LoadDir('preload/client')
+
+local modshared = dash.LoadDir('libraries', 'thirdparty')
+local modserver = (SERVER) and dash.LoadDir('libraries/server', 'thirdparty/server') or {}
+local modclient = dash.LoadDir('libraries/client', 'thirdparty/client')
+
+for k, v in pairs(preshared) do
 	dash.IncludeSH(v)
 end
 
+for k, v in pairs(preclient) do
+	dash.IncludeCL(v)
+end
+
 if (SERVER) then
-	for k, v in pairs(modules.preload.Server) do
+	for k, v in pairs(preserver) do
 		dash.IncludeSV(v)
 	end
-	for k, v in pairs(modules.Shared) do
-		AddCSLuaFile(v)
-	end
-	for k, v in pairs(modules.Client) do
-		AddCSLuaFile(v)
+
+	for k, v in pairs(modserver) do
+		dash.Modules[k] = v
 	end
 end
 
-for k, v in pairs(modules.preload.Client) do
-	dash.IncludeCL(v)
+for k, v in pairs(modshared) do
+	if (SERVER) then
+		AddCSLuaFile(v)
+	end
+	dash.Modules[k] = v
+end
+
+for k, v in pairs(modclient) do
+	if (SERVER) then
+		AddCSLuaFile(v)
+	else
+		dash.Modules[k] = v
+	end
 end
 
 _require = require
 function require(name)
-	local lib = modules.Shared[name] or modules.Server[name] or modules.Client[name]
-	if (lib ~= nil) and (not modules.Loaded[name]) and (not dash.BadModules[name]) then
-		modules.Loaded[name] = true
+	local lib = dash.Modules[name]
+	if lib and (not dash.LoadedModules[name]) and (not dash.BadModules[name]) then
+		dash.LoadedModules[name] = true
 		return include(lib)
-	elseif (not modules.Loaded[name]) and (not dash.BadModules[name]) then
+	elseif (not dash.LoadedModules[name]) and (not dash.BadModules[name]) then
 		return _require(name)
 	end
 end

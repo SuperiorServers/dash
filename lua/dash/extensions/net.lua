@@ -11,6 +11,13 @@ local WriteUInt = net.WriteUInt
 local ReadUInt 	= net.ReadUInt
 local Start 	= net.Start
 local Send 		= (SERVER) and net.Send or net.SendToServer
+local hook_Call = hook.Call
+
+local Incoming = net.Incoming
+function net.Incoming(len, pl)
+	hook_Call('IncomingNetMessage', nil, len, pl)
+	return Incoming(len, pl)
+end
 
 function net.WriteEntity(ent)
 	if IsValid(ent) then 

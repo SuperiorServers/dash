@@ -289,7 +289,8 @@ if (SERVER) then
 	function cmd.Run(pl, command, args)
 		if cmd.Exists(command) then
 			local cmdobj = cmd.Get(command)
-
+			local name = cmdobj:GetName()
+			
 			for i = 1, #args do
 				if (string.upper(tostring(args[i])) == 'STEAM_0') and (args[i + 4]) then
 					args[i] = table.concat(args, '', i, i + 4)
@@ -305,11 +306,11 @@ if (SERVER) then
 			if pl:IsPlayer() then
 				if (not pl.CmdLastRun) then pl.CmdLastRun = {} end
 
-				if pl.CmdLastRun[command] and (pl.CmdLastRun[command] > CurTime()) then
-					return hook.Call('cmd.OnCommandError', nil, pl, cmdobj, cmd.ERROR_COMMAND_COOLDOWN, {math.ceil(pl.CmdLastRun[command] - CurTime())})
+				if pl.CmdLastRun[name] and (pl.CmdLastRun[name] > CurTime()) then
+					return hook.Call('cmd.OnCommandError', nil, pl, cmdobj, cmd.ERROR_COMMAND_COOLDOWN, {math.ceil(pl.CmdLastRun[name] - CurTime())})
 				end
 
-				pl.CmdLastRun[command] = CurTime() + cmdobj:GetCooldown()
+				pl.CmdLastRun[name] = CurTime() + cmdobj:GetCooldown()
 			end
 
 			local succ, parsedargs = cmd.Parse(pl, cmdobj, table.concat(args, ' '))
@@ -318,7 +319,7 @@ if (SERVER) then
 				hook.Call('cmd.OnCommandRun', nil, pl, cmdobj, parsedargs, cmdobj:Run(pl, unpack(parsedargs)))
 			end
 		else
-			hook.Call('cmd.OnCommandError', nil, pl, nil, cmd.ERROR_INVALID_COMMAND, {command})
+			hook.Call('cmd.OnCommandError', nil, pl, nil, cmd.ERROR_INVALID_COMMAND, {name})
 		end
 	end
 else

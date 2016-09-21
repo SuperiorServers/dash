@@ -64,7 +64,7 @@ if SERVER then
 	net.Receive('pns', function(_,pl)
 		local txnid = net.ReadUInt(16)
 		if not buckets[pl] or not buckets[pl][txnid] then
-			dprint('could not receive stream from client. player bucket does not exist or txnid invalid')
+			print('could not receive stream from client. player bucket does not exist or txnid invalid')
 		end
 
 		local bucket = buckets[pl][txnid]
@@ -94,7 +94,7 @@ else
 	net.Receive('pns', function(_)
 		local txnid = net.ReadUInt(16)
 		if not buckets[txnid] then
-			dprint('could not receive stream from server. txnid invalid.')
+			print('could not receive stream from server. txnid invalid.')
 		end
 
 		local bucket = buckets[txnid]

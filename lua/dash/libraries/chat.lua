@@ -27,7 +27,10 @@ function chat.Register(name)
 	else
 		net.Receive(t.NetworkString, function()
 			if IsValid(LocalPlayer()) then
-				chat.AddText(t:ReadFunc())
+				local ret = {t.ReadFunc()}
+				if (#ret > 0) then
+					chat.AddText(unpack(ret))
+				end
 			end
 		end)
 	end

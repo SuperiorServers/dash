@@ -1,4 +1,4 @@
-xbench = {}
+bench = {}
 
 local SysTime 	= SysTime
 local pairs 	= pairs
@@ -10,29 +10,29 @@ local col_red 	= Color(255,0,0)
 local col_green = Color(0,255,0)
 
 local stack = {}
-function xbench.Push()
+function bench.Push()
 	stack[#stack + 1] = SysTime()
 end
 
-function xbench.Pop()
+function bench.Pop()
 	local ret = stack[#stack]
 	stack[#stack] = nil
 	return SysTime() - ret
 end
 
-function xbench.Run(func, calls)
-	xbench.Push()
+function bench.Run(func, calls)
+	bench.Push()
 	for i = 1, (calls or 1000) do
 		func()
 	end
-	return xbench.Pop()
+	return bench.Pop()
 end
 
-function xbench.Compare(funcs, calls)
+function bench.Compare(funcs, calls)
 	local lowest = math.huge
 	local results = {}
 	for k, v in pairs(funcs) do
-		local runtime = xbench.Run(v, calls)
+		local runtime = bench.Run(v, calls)
 		results[k] = runtime
 		if (runtime < lowest) then
 			lowest = runtime

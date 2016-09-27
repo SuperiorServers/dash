@@ -1,15 +1,12 @@
--- PrintTable
--- Modified from https://github.com/meepdarknessmeep/gmodutil
+-- PrintTable, Modified from https://github.com/meepdarknessmeep/gmodutil
 local function GetTextSize(x)
 	return x:len(), 1
 end
 
 local function PrintType(x)
-	if(IsColor(x)) then return 'Color' end
-	if(TypeID(x) == TYPE_ENTITY) then 
-		if(x:IsPlayer()) then return 'Player' end
-		return 'Entity'
-	end
+	if IsColor(x) then return 'Color' end
+	if isplayer(x) then return 'Player' end
+	if isentity(x) then return 'Entity' end
 	return type(x)
 end
 

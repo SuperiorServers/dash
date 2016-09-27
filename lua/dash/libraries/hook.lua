@@ -15,11 +15,11 @@ local IsValid 		= IsValid
 local hooks 		= {}
 local mappings 		= {}
 
-hook.GetTable = function()
+function hook.GetTable()
 	return table.Copy(mappings)
 end
 
-hook.Call = function(name, gm, ...) 
+function hook.Call(name, gm, ...) 
 	if hooks[name] ~= nil then
 		for k, v in ipairs(hooks[name]) do
 			local a, b, c, d, e = v(...)
@@ -34,11 +34,11 @@ hook.Call = function(name, gm, ...)
 end
 
 local hook_Call = hook.Call
-hook.Run = function(name, ...)
+function hook.Run(name, ...)
 	return hook_Call(name, GAMEMODE, ...)
 end
 
-hook.Remove = function(name, id)
+function hook.Remove(name, id)
 	local collection = hooks[name]
 	if collection ~= nil then
 		local func = mappings[name][id]
@@ -55,7 +55,7 @@ hook.Remove = function(name, id)
 end
 
 local hook_Remove = hook.Remove
-hook.Add = function(name, id, func) 
+function hook.Add(name, id, func) 
 	if isfunction(id) then
 		func = id
 		id = debug_info(func).short_src

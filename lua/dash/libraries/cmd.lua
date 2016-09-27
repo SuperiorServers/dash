@@ -14,7 +14,7 @@ cmd = setmetatable({
 	ERROR_INVALID_PLAYER 	= 4, -- Argument
 	ERROR_INVALID_NUMBER 	= 5, -- Argument
 	ERROR_INVALID_TIME 		= 6, -- Argument
-	ERROR_COMMAND_COOLDOWN 	= 7, -- Seconds left
+	ERROR_COMMAND_COOLDOWN 	= 7, -- Seconds left, command
 
 	NumberUnits = {
 		h 	= 100,
@@ -56,7 +56,7 @@ term.Add(cmd.ERROR_MISSING_PARAM, 'Missing argument #: #')
 term.Add(cmd.ERROR_INVALID_PLAYER, 'Could not find player: #')
 term.Add(cmd.ERROR_INVALID_NUMBER, 'Invalid number: #')
 term.Add(cmd.ERROR_INVALID_TIME, 'Invalid time: #')
-term.Add(cmd.ERROR_COMMAND_COOLDOWN, 'You need to wait # seconds to run this command again!')
+term.Add(cmd.ERROR_COMMAND_COOLDOWN, 'You need to wait # seconds to run "#" again!')
 
 -- Parsing
 function cmd.AddParam(name, nicename, parse, autocomplete)
@@ -307,7 +307,7 @@ if (SERVER) then
 				if (not pl.CmdLastRun) then pl.CmdLastRun = {} end
 
 				if pl.CmdLastRun[name] and (pl.CmdLastRun[name] > CurTime()) then
-					return hook.Call('cmd.OnCommandError', nil, pl, cmdobj, cmd.ERROR_COMMAND_COOLDOWN, {math.ceil(pl.CmdLastRun[name] - CurTime())})
+					return hook.Call('cmd.OnCommandError', nil, pl, cmdobj, cmd.ERROR_COMMAND_COOLDOWN, {math.ceil(pl.CmdLastRun[name] - CurTime()), name})
 				end
 
 				pl.CmdLastRun[name] = CurTime() + cmdobj:GetCooldown()
@@ -319,7 +319,7 @@ if (SERVER) then
 				hook.Call('cmd.OnCommandRun', nil, pl, cmdobj, parsedargs, cmdobj:Run(pl, unpack(parsedargs)))
 			end
 		else
-			hook.Call('cmd.OnCommandError', nil, pl, nil, cmd.ERROR_INVALID_COMMAND, {name})
+			hook.Call('cmd.OnCommandError', nil, pl, nil, cmd.ERROR_INVALID_COMMAND, {command})
 		end
 	end
 else

@@ -1,5 +1,5 @@
 --[[---------------------------------------------------------
-   Name: Tracer( vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, pCustomTracerName, iParticleID )
+   Name: Tracer(vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, pCustomTracerName, iParticleID)
    Desc: Create a tracer effect
 -----------------------------------------------------------]]
 -- Tracer flags
@@ -8,36 +8,36 @@ TRACER_FLAG_USEATTACHMENT = 0x0002
 
 TRACER_DONT_USE_ATTACHMENT = -1
 
-function util.Tracer( vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, pCustomTracerName, iParticleID )
+function util.Tracer(vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, pCustomTracerName, iParticleID)
 	local data = EffectData()
-	data:SetStart( vecStart )
-	data:SetOrigin( vecEnd )
-	data:SetEntity( pEntity )
-	data:SetScale( flVelocity )
+	data:SetStart(vecStart)
+	data:SetOrigin(vecEnd)
+	data:SetEntity(pEntity)
+	data:SetScale(flVelocity)
 	
-	if ( iParticleID ~= nil ) then
-		data:SetHitBox( iParticleID )
+	if (iParticleID ~= nil) then
+		data:SetHitBox(iParticleID)
 	end
 
 	local fFlags = data:GetFlags()
 
 	-- Flags
-	if ( bWhiz ) then
-		fFlags = bit.bor( fFlags, TRACER_FLAG_WHIZ )
+	if bWhiz then
+		fFlags = bit.bor(fFlags, TRACER_FLAG_WHIZ)
 	end
 
-	if ( iAttachment ~= TRACER_DONT_USE_ATTACHMENT ) then
-		fFlags = bit.bor( fFlags, TRACER_FLAG_USEATTACHMENT )
-		data:SetAttachment( iAttachment )
+	if (iAttachment ~= TRACER_DONT_USE_ATTACHMENT) then
+		fFlags = bit.bor(fFlags, TRACER_FLAG_USEATTACHMENT)
+		data:SetAttachment(iAttachment )
 	end
 
-	data:SetFlags( fFlags )
+	data:SetFlags(fFlags)
 
 	-- Fire it off
-	if ( pCustomTracerName ) then
-		util.Effect( pCustomTracerName, data )
+	if pCustomTracerName then
+		util.Effect(pCustomTracerName, data)
 	else
-		util.Effect( "Tracer", data )
+		util.Effect("Tracer", data)
 	end
 end
 

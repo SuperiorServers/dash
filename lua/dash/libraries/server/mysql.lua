@@ -39,6 +39,7 @@ local SysTime 		= SysTime
 local pairs 		= pairs
 local select 		= select
 local isfunction 	= isfunction
+local string_format = string.format
 local string_gsub 	= string.gsub
 
 local color_purple 	= Color(185,0,255)
@@ -98,76 +99,42 @@ function DATABASE:Log(message)
 	MsgC(color_purple, '[MySQL] ', color_white, tostring(message) .. '\n')
 end
 
-
+local quote = '"'
 local retry_errors = {
 	['Lost connection to MySQL server during query'] = true,
 	[' MySQL server has gone away'] = true,
 }
 
-/*function DATABASE:Query(query, ...)
-	local cback
-	local varcount = select('#', ...)
-	if (varcount > 0) then
-		local values = {}
-		cback = select(varcount, ...)
-		if (varcount > 1) then
-			for i = 1, (varcount - 1) do
-				local v = select(i, ...)
-				values[i] = '"' .. self.Handle:Escape(v) .. '"'
+local function handlequery(db, query, results, cback)
+	if (results[1].error ~= nil) then
+		db:Log(results[1].error)
+		if retry_errors[results[1].error] then
+			if query_queue[query] then
+				query_queue[query].Trys = query_queue[query].Trys + 1
+			else
+				query_queue[query] = {
+					Db 		= db, 
+					Query 	= query,
+					Trys 	= 0,
+					Cback 	= cback
+				}
 			end
-		elseif (not isfunction(cback)) then
-			query = string_gsub(query, '?', cback)
 		end
+	elseif cback then
+		cback(results[1].data, results[1].lastid, results[1].affected, results[1].time)
 	end
-	
-	print(varcount, query)
-	self.Handle:Query(query, function(results)
-		if (results[1].error ~= nil) then
-			self:Log(results[1].error)
-			if retry_errors[results[1].error] then
-				if query_queue[query] then
-					query_queue[query].Trys = query_queue[query].Trys + 1
-				else
-					query_queue[query] = {
-						Db 		= self, 
-						Query 	= query,
-						Trys 	= 0,
-						Cback 	= cback
-					}
-				end
-			end
-		elseif cback then
-			cback(results[1].data, results[1].lastid, results[1].affected, results[1].time)
-		end
-	end)
-end*/
+end
 
 function DATABASE:Query(query, ...)
 	local args = {...}
 	local count = 0
 	query = query:gsub('?', function()
 		count = count + 1
-		return '"' .. self:Escape(args[count]) .. '"'
+		return quote .. self:Escape(args[count]) .. quote
 	end)
 
 	self.Handle:Query(query, function(results)
-		if (results[1].error ~= nil) then
-			self:Log(results[1].error)
-			if retry_errors[results[1].error] then
-				if query_queue[query] then
-					query_queue[query].Trys = query_queue[query].Trys + 1
-				else
-					query_queue[query] = {
-						Db 		= self, 
-						Query 	= query,
-						Trys 	= 0,
-						Cback 	= args[count + 1]
-					}
-				end
-			end
-		elseif (isfunction(args[count + 1])) then
-			args[count + 1](results[1].data, results[1].lastid, results[1].affected, results[1].time)
-		end
+		handlequery(self, query, results, args[count + 1])
 	end)
 end
 
@@ -191,12 +158,12 @@ function DATABASE:QuerySync(query, ...)
 end
 
 function DATABASE:Prepare(query)
-	local sep 			= '?'
-	local quo 			= '"'
-	local _, varcount 	= string_gsub(query, sep, sep)
+	local _, varcount 	= string_gsub(query, '?', '?')
 	local dbhandle 		= self.Handle
 	local db 			= self
 	local values		= {}
+
+	query = string.Replace(query, '?', '%s')
 
 	return setmetatable({
 		Handle = self.Handle,
@@ -204,33 +171,13 @@ function DATABASE:Prepare(query)
 		Count = varcount,
 		Values = values,
 		Run = function(self, ...)
-			local count = 0
 			local cback = select(varcount + 1, ...)
 			for i = 1, varcount do
-				values[i] = quo .. db:Escape(select(i, ...)) .. quo
+				values[i] = quote .. db:Escape(select(i, ...)) .. quote
 			end
-			local query = string_gsub(query, sep, function()
-				count = count + 1
-				return values[count]
-			end)
+			local query = string_format(query, unpack(values))
 			dbhandle:Query(query, function(results)
-				if (results[1].error ~= nil) then
-					db:Log(results[1].error)
-					if retry_errors[results[1].error] then
-						if query_queue[query] then
-							query_queue[query].Trys = query_queue[query].Trys + 1
-						elseif cback then
-							query_queue[query] = {
-								Db 		= db, 
-								Query 	= query,
-								Trys 	= 0,
-								Cback 	= cback
-							}
-						end
-					end
-				elseif cback then
-					cback(results[1].data, results[1].lastid, results[1].affected, results[1].time)
-				end
+				handlequery(db, query, results, cback)
 			end)
 		end,
 	}, STATEMENT)
@@ -293,7 +240,6 @@ end
 function STATEMENT:GetDatabase()
 	return self.Handle
 end
-
 
 
 timer.Create('mysql.QueryQueue', 0.5, 0, function()

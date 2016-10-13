@@ -28,7 +28,7 @@ function util.Tracer(vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, 
 
 	if (iAttachment ~= TRACER_DONT_USE_ATTACHMENT) then
 		fFlags = bit.bor(fFlags, TRACER_FLAG_USEATTACHMENT)
-		data:SetAttachment(iAttachment )
+		data:SetAttachment(iAttachment)
 	end
 
 	data:SetFlags(fFlags)

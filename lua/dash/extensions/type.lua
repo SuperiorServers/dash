@@ -8,9 +8,9 @@ local VECTOR 	= FindMetaTable 'Vector'
 local MATERIAL 	= FindMetaTable 'IMaterial'
 local ENTITY 	= FindMetaTable 'Entity'
 local PLAYER 	= FindMetaTable 'Player'
-local PHYS 		= FindMetaTable 'PhysObj'
+local PHYS 	= FindMetaTable 'PhysObj'
 local WEAPON 	= FindMetaTable 'Weapon'
-local NPC 		= FindMetaTable 'NPC'
+local NPC 	= FindMetaTable 'NPC'
 local NEXTBOT 	= FindMetaTable 'NextBot'
 local VEHICLE 	= FindMetaTable 'Vehicle'
 
@@ -20,6 +20,7 @@ local entmts = {
 	[PHYS] 		= true,
 	[WEAPON] 	= true,
 	[NPC] 		= true,
+        [PLAYER]        = true,
 }
 if (SERVER) then entmts[NEXTBOT] = true end
 

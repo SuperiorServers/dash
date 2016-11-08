@@ -61,7 +61,7 @@ local net_Broadcast = net.Broadcast
 local player_GetAll = player.GetAll
 local sorted_pairs 	= SortedPairsByMemberValue
 
-function nw.Register(var, info) -- You must always call this on both the client and server. It will serioulsy break shit if you don't.
+function nw.Register(var) -- You must always call this on both the client and server. It will serioulsy break shit if you don't.
 	local t = {
 		Name = var,
 		NetworkString = 'nw_' .. var,
@@ -92,14 +92,6 @@ function nw.Register(var, info) -- You must always call this on both the client 
 
 			t:_CallHook(index, value)
 		end)
-	end
-
-	if (info ~= nil) then -- info arg is only for backwards support, plz dont use
-		if info.Read then t:Read(info.Read) end
-		if info.Write then t:Write(info.Write) end
-		if info.LocalVar then t:SetLocal() end
-		if info.GlobalVar then t:SetGlobal() end
-		if info.Filter then t:Filter(info.Filter) end
 	end
 
 	return t:_Construct()
@@ -135,7 +127,6 @@ function NETVAR:SetLocalPlayer()
 	self.LocalPlayerVar = true
 	return self:_Construct()
 end
-NETVAR.SetLocal = NETVAR.SetLocalPlayer -- backward support
 
 function NETVAR:SetGlobal()
 	self.GlobalVar = true

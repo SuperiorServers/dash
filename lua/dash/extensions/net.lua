@@ -73,7 +73,7 @@ function net.WriteLong(i)
 end
 
 function net.ReadLong()
-	return ReadUInt(i, 32)
+	return ReadUInt(32)
 end
 
 function net.WritePlayer(pl)

@@ -1,4 +1,5 @@
 local PLAYER = FindMetaTable 'Player'
+local ENTITY = FindMetaTable 'Entity'
 
 function player.Find(info)
 	info = tostring(info)
@@ -31,3 +32,20 @@ end
 function PLAYER:DestroyTimer(name)
 	timer.Destroy(self:SteamID64() .. '-' .. name)
 end
+
+-- Fix for https://github.com/Facepunch/garrysmod-issues/issues/2447
+local telequeue = {}
+local setpos = ENTITY.SetPos
+function ENTITY:SetPos(pos)
+	if isplayer(self) then
+		telequeue[self] = pos
+	end
+	return setpos(self, pos)
+end
+
+hook.Add('FinishMove', 'SetPos.FinishMove', function(pl)
+	if telequeue[pl] then
+		setpos(pl, telequeue[pl])
+		telequeue[pl] = nil
+	end
+end)

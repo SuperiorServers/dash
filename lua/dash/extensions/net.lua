@@ -69,7 +69,7 @@ function net.ReadShort()
 end
 
 function net.WriteLong(i)
-	WriteUInt(u, 32)
+	WriteUInt(i, 32)
 end
 
 function net.ReadLong()

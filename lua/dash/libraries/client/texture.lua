@@ -48,11 +48,6 @@ function texture.SetProxy(url)
 	proxyurl = url
 end
 
-function texture.SetSalt(salt)
-	uidsalt = salt
-end
-
-
 function TEXTURE:SetSize(w, h)
 	self.Width, self.Height = w, h
 	return self

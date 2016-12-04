@@ -12,10 +12,10 @@ cvar = setmetatable({
 	end
 })
 
-local cvar_mt 	= {}
-cvar_mt.__index = cvar_mt
+local CVAR 	= {}
+CVAR.__index = CVAR
 
-debug.getregistry().cvar = cvar_mt
+debug.getregistry().cvar = CVAR
 
 local function encode(data)
 	return util.Compress(pon.encode(data))
@@ -31,25 +31,25 @@ local function load()
 	else
 		local files, _ = file.Find('cvar/*.dat', 'DATA')
 		for k, v in ipairs(files) do
-			local c = setmetatable(decode(file.Read('cvar/' .. v, 'DATA')), cvar_mt)
+			local c = setmetatable(decode(file.Read('cvar/' .. v, 'DATA')), CVAR)
 			cvar.GetTable[c.Name] = c
 		end
 	end
 end
 
-function cvar_mt:Save()
+function CVAR:Save()
 	file.Write('cvar/' .. self.ID .. '.dat', encode(self))
 	return self
 end
 
-function cvar_mt:SetValue(value)
+function CVAR:SetValue(value)
 	hook.Call('cvar.' ..  self.Name, nil, self.Value, value)
 	self.Value = value
 	self:Save()
 	return self
 end
 
-function cvar_mt:SetDefault(value)
+function CVAR:SetDefault(value)
 	self.DefaultValue = value
 	if (self.Value == nil) then
 		self.Value = value
@@ -57,29 +57,29 @@ function cvar_mt:SetDefault(value)
 	return self
 end
 
-function cvar_mt:AddMetadata(key, value)
+function CVAR:AddMetadata(key, value)
 	self.Metadata[key] = value
 	return self
 end
 
-function cvar_mt:AddCallback(callback)
+function CVAR:AddCallback(callback)
 	hook.Add('cvar.' .. self.Name, callback)
 	return self
 end
 
-function cvar_mt:GetName()
+function CVAR:GetName()
 	return self.Name
 end
 
-function cvar_mt:GetValue()
+function CVAR:GetValue()
 	return self.Value
 end
 
-function cvar_mt:GetMetadata(key)
+function CVAR:GetMetadata(key)
 	return self.Metadata[key]
 end
 
-function cvar_mt:Reset()
+function CVAR:Reset()
 	local default = self.DefaultValue
 	if (default ~= nil) then
 		self:SetValue(default)
@@ -88,7 +88,7 @@ function cvar_mt:Reset()
 	return false
 end
 
-function cvar_mt:ConCommand(func)
+function CVAR:ConCommand(func)
 	concommand.Add(self.Name, function(p, c, a) func(self, p, a) end)
 
 	return self
@@ -100,7 +100,7 @@ function cvar.Register(name)
 			Name = name,
 			ID 	= util.CRC(name),
 			Metadata = {}
-		}, cvar_mt)
+		}, CVAR)
 	end
 	return cvar.GetTable[name]
 end

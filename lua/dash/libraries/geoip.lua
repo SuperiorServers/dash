@@ -1,14 +1,12 @@
-geoip 				= {}
+geoip 			= {}
 
 local geoip 		= geoip
 local http_fetch 	= http.Fetch
-local json_to_table = util.JSONToTable
+local json_to_table 	= util.JSONToTable
 
-local failures		 = 0
 local result_cache	 = {}
 
-
-function geoip.Get(ip, cback, failure)
+function geoip.Get(ip, cback, failure, attempts)
 	if result_cache[ip] then
 		cback(result_cache[ip])
 	else
@@ -17,15 +15,14 @@ function geoip.Get(ip, cback, failure)
 				error('GeoIP: Failed to lookup ip: ' .. ip)
 			else
 				local res = json_to_table(b)
-				failures = 0
 				result_cache[ip] = res
 				cback(res)
 			end
 		end, function()
-			if (failures <= 5) then 
+			attempts = attempts or 0
+			if (attempts <= 5) then
 				timer.Simple(5, function()
-					failures = failures + 1
-					geoip.Get(ip, cback)
+					geoip.Get(ip, cback, failure, attempts + 1)
 				end)
 			else
 				failure()

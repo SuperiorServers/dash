@@ -3,6 +3,7 @@ geoip 			= {}
 local geoip 		= geoip
 local http_fetch 	= http.Fetch
 local json_to_table 	= util.JSONToTable
+local timer_simple 	= timer.simple
 
 local result_cache	 = {}
 
@@ -21,7 +22,7 @@ function geoip.Get(ip, cback, failure, attempts)
 		end, function()
 			attempts = attempts or 0
 			if (attempts <= 5) then
-				timer.Simple(5, function()
+				timer_simple(5, function()
 					geoip.Get(ip, cback, failure, attempts + 1)
 				end)
 			else

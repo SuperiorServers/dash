@@ -5,30 +5,30 @@ local TEXTURE = {
 		return self.Name
 	end
 }
-TEXTURE.__index = TEXTURE
+TEXTURE.__index  = TEXTURE
 TEXTURE.__concat = TEXTURE.__tostring
 
 debug.getregistry().Texture = TEXTURE
 
-local textures 	= {}
-local proxyurl 	= 'https://YOUR_SITE.COM/?url=%s&width=%i&height=%i&format=%s'
+local textures = {}
+local proxyurl = 'https://YOUR_SITE.COM/?url=%s&width=%i&height=%i&format=%s'
 
 require 'hash'
 
-if (not file.IsDir('texture', 'DATA')) then 
+if (not file.IsDir('texture', 'DATA')) then
 	file.CreateDir 'texture'
 end
 
 function texture.Create(name)
 	local ret = setmetatable({
-		Name 	= name,
-		URL 	= '',
-		Width 	= 1024,
-		Height 	= 1024,
-		Busy 	= false,
-		Cache 	= true,
-		Proxy 	= true,
-		Format 	= 'jpg',
+		Name   = name,
+		URL    = '',
+		Width  = 1024,
+		Height = 1024,
+		Busy   = false,
+		Cache  = true,
+		Proxy  = true,
+		Format = 'jpg',
 	}, TEXTURE)
 	textures[name] = ret
 	return ret
@@ -39,6 +39,7 @@ function texture.Get(name)
 		return textures[name]:GetMaterial()
 	end
 end
+
 
 function texture.Delete(name)
 	textures[name] = nil
@@ -57,6 +58,7 @@ function TEXTURE:SetFormat(format) -- valid formats are whatever your webserver 
 	self.Format = format
 	return self
 end
+
 
 function TEXTURE:EnableCache(enable)
 	self.Cache = enable
@@ -79,7 +81,7 @@ function TEXTURE:GetUID(reaccount)
 	end
 	return self.UID
 end
-	
+
 function TEXTURE:GetSize()
 	return self.Width, self.Height
 end
@@ -105,8 +107,9 @@ function TEXTURE:GetError()
 end
 
 function TEXTURE:IsBusy()
-	return (self.Busy == true)
+	return self.Busy == true
 end
+
 
 function TEXTURE:Download(url, onsuccess, onfailure)
 	if (self.Name == nil) then
@@ -130,7 +133,7 @@ function TEXTURE:Download(url, onsuccess, onfailure)
 			if onsuccess then
 				onsuccess(self, self.IMaterial)
 			end
-			
+
 			self.Busy = false
 		end, function(error)
 
@@ -159,7 +162,7 @@ function TEXTURE:RenderManual(func, callback)
 	else
 		hook.Add('HUDPaint', 'texture.render' .. self:GetName(), function()
 			if self:IsBusy() then return end
-			
+
 			local w, h = self.Width, self.Height
 
 			local drawRT = GetRenderTarget('texture_rt', w, h, true)
@@ -171,14 +174,14 @@ function TEXTURE:RenderManual(func, callback)
 
 				render.SetViewPort(0, 0, w, h) -- may need to tweak this all a bit later when I find use cases this doesn't work well for.
 					func(self, w, h)
-			
+
 					if self.Cache then
 						self.File = 'texture/' .. self:GetUID() .. '-render.png'
-						file.Write(self.File, render.Capture({ 
-							format = 'png', 
-							quality = 100, 
-							x = 0, 
-							y = 0, 
+						file.Write(self.File, render.Capture({
+							format = 'png',
+							quality = 100,
+							x = 0,
+							y = 0,
 							h = h,
 							w = w
 						}))
@@ -191,7 +194,7 @@ function TEXTURE:RenderManual(func, callback)
 			if callback then
 				callback(self, self.IMaterial)
 			end
-			
+
 			hook.Remove('HUDPaint', 'texture.render' .. self:GetName())
 		end)
 	end
@@ -199,19 +202,17 @@ function TEXTURE:RenderManual(func, callback)
 end
 
 function TEXTURE:Render(func, callback)
-	return self:RenderManual(function(self, w, h)
+	return self:RenderManual(function(s, w, h)
 		cam.Start2D()
-			func(self, w, h)
+			func(s, w, h)
 		cam.End2D()
 	end, callback)
 end
 
-
-
 /*
 Basic usage
 
-local logo = texture.Create()
+local logo = texture.Create(string.Random())
 	:SetSize(570, 460)
 	:SetFormat('png')
 	:Download('https://i.imgur.com/TZcJ1CK.png')
@@ -226,10 +227,14 @@ local logo = texture.Create()
 	end)
 
 hook.Add('HUDPaint', 'awdawd', function()
-	if logo:GetMaterial() then 
+	if logo:GetMaterial() then
 		surface.SetDrawColor(255,255,255,255)
 		surface.SetMaterial(logo:GetMaterial())
 		surface.DrawTexturedRect(35, 35, 570, 460)
 	end
+end)
+
+timer.Simple(10,function()
+	hook.Remove('HUDPaint', 'awdawd')
 end)
 */

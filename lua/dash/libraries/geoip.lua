@@ -25,7 +25,7 @@ function geoip.Get(ip, cback, failure)
 			if (failures <= 5) then 
 				timer.Simple(5, function()
 					failures = failures + 1
-					geoip.Get(ip, cback)
+					geoip.Get(ip, cback, failure)
 				end)
 			else
 				failure()

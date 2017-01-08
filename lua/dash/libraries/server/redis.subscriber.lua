@@ -43,8 +43,6 @@ function redis.ConnectSubscriber(ip, port, database, autopoll, autocommit) -- no
 		end)
 	end
 
-	self:Log('Connected successfully.')
-
 	table.insert(subscribers, self)
 	subscribercount = subscribercount + 1
 
@@ -52,11 +50,9 @@ function redis.ConnectSubscriber(ip, port, database, autopoll, autocommit) -- no
 end
 
 
-
-
 -- Internal
-function REDIS_SUBSCRIBER:OnMessage(channel, msg) -- No point in doing our own hook system
-	hook.Call('RedisSubscriberMessage', nil, self, channel, msg)
+function REDIS_SUBSCRIBER:OnMessage(channel, message) -- No point in doing our own hook system
+	hook.Call('RedisSubscriberMessage', nil, self, channel, message)
 end
 
 function REDIS_SUBSCRIBER:OnDisconnected()
@@ -87,7 +83,6 @@ end
 function REDIS_SUBSCRIBER:Log(message)
 	MsgC(color_prefix, '[Redis-Subscriber] ', color_text, self.Hostname .. ':' .. self.Port .. ' => ', tostring(message) .. '\n')
 end
-
 
 local commit = REDIS_SUBSCRIBER.Commit
 function REDIS_SUBSCRIBER:Commit()

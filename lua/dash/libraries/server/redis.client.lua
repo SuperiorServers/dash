@@ -74,7 +74,7 @@ function REDIS_CLIENT:Wait(func, ...)
 	self.IsWaiting = true
 	local endwait = SysTime() + 1
 
-	while self.IsWaiting and (endwait >= SysTime()) do
+	while self.IsWaiting and (endwait >= SysTime()) and (dat == nil) do
 		self:Poll()
 	end
 

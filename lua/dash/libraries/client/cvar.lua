@@ -121,6 +121,7 @@ end
 
 function CVAR:Save()
 	file.Write(data_directory .. '/' .. self.ID .. '.dat', util.Compress(pon.encode({
+		Name = self.Name,
 		ID = self.ID,
 		Value = self.Value,
 		Metadata = self.Metadata,

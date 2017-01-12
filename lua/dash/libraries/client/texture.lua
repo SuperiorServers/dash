@@ -1,3 +1,5 @@
+require 'hash'
+
 texture = {}
 
 local TEXTURE = {
@@ -12,8 +14,6 @@ debug.getregistry().Texture = TEXTURE
 
 local textures 	= {}
 local proxyurl 	= 'https://YOUR_SITE.COM/?url=%s&width=%i&height=%i&format=%s'
-
-require 'hash'
 
 if (not file.IsDir('texture', 'DATA')) then 
 	file.CreateDir 'texture'

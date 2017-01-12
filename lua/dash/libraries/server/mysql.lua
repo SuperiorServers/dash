@@ -42,8 +42,7 @@ local isfunction 	= isfunction
 local string_format = string.format
 local string_gsub 	= string.gsub
 
-local color_purple 	= Color(185,0,255)
-local color_white 	= Color(250,250,250)
+local color_prefix, color_text = Color(185,0,255), Color(250,250,250)
 
 local query_queue	= {}
 
@@ -65,11 +64,11 @@ function mysql.Connect(hostname, username, password, database, port, optional_so
 	if db_obj.Error then
 		db_obj:Log(db_obj.Error)
 	elseif (db_obj.Handle == false) then
-		db_obj:Log('Failed to connect to database ' .. db_obj .. '.')
+		db_obj:Log('Connection failed!')
 	else
 		mysql.GetTable[tostring(db_obj)] = db_obj
 
-		db_obj:Log('Connected to database ' .. db_obj .. ' successfully.')
+		db_obj:Log('Connected successfully.')
 	end
 
 	--self:SetOption(MYSQL_SET_CLIENT_IP, GetConVarString('ip'))
@@ -96,7 +95,7 @@ function DATABASE:Escape(value)
 end
 
 function DATABASE:Log(message)
-	MsgC(color_purple, '[MySQL] ', color_white, tostring(message) .. '\n')
+	MsgC(color_prefix, '[MySQL] ', color_text, tostring(self) .. ' => '.. tostring(message) .. '\n')
 end
 
 local quote = '"'

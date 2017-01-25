@@ -188,6 +188,10 @@ function REDIS_CLIENT:Expire(key, secs, callback)
 	return self:Send({'EXPIRE', key, secs}, callback)
 end
 
+function REDIS_CLIENT:TTL(key, callback)
+	return self:Send({'TTL', key}, callback)
+end
+
 function REDIS_CLIENT:Delete(key, callback)
 	return self:Send({'DEL', key}, callback)
 end

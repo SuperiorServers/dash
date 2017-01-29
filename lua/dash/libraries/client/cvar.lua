@@ -27,8 +27,8 @@ local function load()
 		local files, _ = file.Find(data_directory .. '/*.dat', 'DATA')
 		for k, v in ipairs(files) do
 			local file_dir = data_directory .. '/' .. v
-			local var = pon.decode(util.Decompress(file.Read(file_dir, 'DATA')))
-			if isstring(var.Name) and (tostring(var.ID) == v:sub(0, -5)) and istable(var.Metadata) then
+			local success, var = pcall(pon.decode, util.Decompress(file.Read(file_dir, 'DATA')))
+			if success and isstring(var.Name) and (tostring(var.ID) == v:sub(0, -5)) and istable(var.Metadata) then
 				staged_cvars[var.Name] = setmetatable(var, CVAR)
 			else
 				file.Delete(file_dir)

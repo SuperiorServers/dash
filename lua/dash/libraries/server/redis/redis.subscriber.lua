@@ -6,18 +6,18 @@ local subscribers =	setmetatable({}, {__mode = 'v'})
 local subscribercount = 0
 
 function redis.GetSubscribers()
-	for i = 1, subscribersnum do
+	for i = 1, subscribercount do
 		if subscribers[i] == nil then
 			table.remove(subscribers, i)
 			i = i - 1
-			subscribersnum = subscribersnum - 1
+			subscribercount = subscribercount - 1
 		end
 	end
 
 	return subscribers
 end
 
-function redis.ConnectSubscriber(ip, port, database, autopoll, autocommit) -- no auth like clients, iptables or localhost it I suppose.
+function redis.ConnectSubscriber(ip, port, autopoll, autocommit) -- no auth like clients, iptables or localhost it I suppose.
 	local self, err = redis.CreateSubscriber()
 
 	if (not self) then

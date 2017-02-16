@@ -19,6 +19,11 @@ function net.Incoming(len, pl)
 	return Incoming(len, pl)
 end
 
+local ReadData = net.ReadData
+function net.ReadData(len)
+	return ReadData(math.Clamp(len, 0, 65533)) --Clamp the length to the maximum size of a net message (65533 bytes)
+end
+
 function net.WriteEntity(ent)
 	if IsValid(ent) then 
 		WriteUInt(ent:EntIndex(), 12)

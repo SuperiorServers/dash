@@ -4,6 +4,9 @@ setmetatable(net, {
 	end
 })
 
+local hook_Call = hook.Call
+local math_abs = math.abs
+local math_min = math.min
 local IsValid 	= IsValid
 local Entity 	= Entity
 local Color 	= Color
@@ -11,17 +14,32 @@ local WriteUInt = net.WriteUInt
 local ReadUInt 	= net.ReadUInt
 local Start 	= net.Start
 local Send 		= (SERVER) and net.Send or net.SendToServer
-local hook_Call = hook.Call
 
 local Incoming = net.Incoming
-function net.Incoming(len, pl)
-	hook_Call('IncomingNetMessage', nil, len, pl)
-	return Incoming(len, pl)
+function net.Incoming(bitCount, pl)
+	hook_Call('IncomingNetMessage', nil, bitCount, pl)
+	return Incoming(bitCount, pl)
 end
 
 local ReadData = net.ReadData
-function net.ReadData(len)
-	return ReadData(math.Clamp(len, 0, 65533)) --Clamp the length to the maximum size of a net message (65533 bytes)
+function net.ReadData(bitCount)
+	return ReadData(math_min(math_abs(bits), 65533))
+end
+
+local ReadUInt = net.ReadUInt
+function net.ReadUInt(bitCount)
+	if (bitCount > 32) or (bitCount < 1) then
+		error('Out of range bitCount! Got ' .. bitCount)
+	end
+	return ReadUInt(bitCount)
+end
+
+local ReadInt = net.ReadInt
+function net.ReadInt(bitCount)
+	if (bitCount > 32) or (bitCount < 1) then
+		error('Out of range bitCount! Got ' .. bitCount)
+	end
+	return ReadInt(bitCount)
 end
 
 function net.WriteEntity(ent)

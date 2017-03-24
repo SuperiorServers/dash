@@ -23,7 +23,7 @@ end
 
 local ReadData = net.ReadData
 function net.ReadData(bitCount)
-	return ReadData(math_min(math_abs(bits), 65533))
+	return ReadData(math_min(math_abs(bitCount), 65533))
 end
 
 local ReadUInt = net.ReadUInt
@@ -43,7 +43,7 @@ function net.ReadInt(bitCount)
 end
 
 function net.WriteEntity(ent)
-	if IsValid(ent) then 
+	if IsValid(ent) then
 		WriteUInt(ent:EntIndex(), 12)
 	else
 		WriteUInt(0, 12)
@@ -100,7 +100,7 @@ function net.ReadLong()
 end
 
 function net.WritePlayer(pl)
-	if IsValid(pl) then 
+	if IsValid(pl) then
 		WriteUInt(pl:EntIndex(), 7)
 	else
 		WriteUInt(0, 7)

@@ -21,11 +21,6 @@ function net.Incoming(bitCount, pl)
 	return Incoming(bitCount, pl)
 end
 
-local ReadData = net.ReadData
-function net.ReadData(bitCount)
-	return ReadData(math_min(math_abs(bitCount), 65533))
-end
-
 local ReadUInt = net.ReadUInt
 function net.ReadUInt(bitCount)
 	if (bitCount > 32) or (bitCount < 1) then

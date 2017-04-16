@@ -91,7 +91,7 @@ function DATABASE:Poll()
 end
 
 function DATABASE:Escape(value)
-	return self.Handle:Escape(tostring(value))
+	return (value == nil) and 'NULL' or self.Handle:Escape(tostring(value))
 end
 
 function DATABASE:Log(message)

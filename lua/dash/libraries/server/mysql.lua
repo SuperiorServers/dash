@@ -91,7 +91,7 @@ function DATABASE:Poll()
 end
 
 function DATABASE:Escape(value)
-	return (value == nil) and 'NULL' or self.Handle:Escape(tostring(value))
+	return (value ~= nil) and self.Handle:Escape(tostring(value))
 end
 
 function DATABASE:Log(message)
@@ -129,7 +129,7 @@ function DATABASE:Query(query, ...)
 	local count = 0
 	query = query:gsub('?', function()
 		count = count + 1
-		return quote .. self:Escape(args[count]) .. quote
+		return (args[count] ~= nil) and (quote .. self:Escape(args[count]) .. quote) or 'NULL'
 	end)
 
 	self.Handle:Query(query, function(results)
@@ -172,7 +172,8 @@ function DATABASE:Prepare(query)
 		Run = function(self, ...)
 			local cback = select(varcount + 1, ...)
 			for i = 1, varcount do
-				values[i] = quote .. db:Escape(select(i, ...)) .. quote
+				local value = select(i, ...)
+				values[i] = (value ~= nil) and (quote .. db:Escape(value) .. quote) or 'NULL'
 			end
 			local query = string_format(query, unpack(values))
 			dbhandle:Query(query, function(results)

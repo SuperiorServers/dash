@@ -279,3 +279,8 @@ end
 function REDIS_CLIENT:RPushX(key, value, callback)
 	return self:Send({'PRUSHX', key, value}, callback)
 end
+
+--https://redis.io/commands#hash
+function REDIS_CLIENT:HMGet(key, values, callback)
+	return self:Send({'HMGET', key, isstring(values) and values or unpack(values)}, callback)
+end

@@ -51,15 +51,35 @@ function net.ReadEntity()
 	return Entity(i)
 end
 
-function net.WriteColor(c)
-	WriteUInt(c.r, 8)
-	WriteUInt(c.g, 8)
-	WriteUInt(c.b, 8)
-	WriteUInt(c.a, 8)
+function net.WriteRGB(r, g, b)
+	WriteUInt(r, 8)
+	WriteUInt(g, 8)
+	WriteUInt(b, 8)
 end
 
+function net.WriteRGBA(r, g, b, a)
+	WriteUInt(r, 8)
+	WriteUInt(g, 8)
+	WriteUInt(b, 8)
+	WriteUInt(a, 8)
+end
+local WriteRGBA = net.WriteRGBA
+
+function net.WriteColor(c)
+	WriteRGBA(c.r, c.g, c.b, c.a)
+end
+
+function net.ReadRGB()
+	return ReadUInt(8), ReadUInt(8), ReadUInt(8)
+end
+
+function net.ReadRGBA()
+	return ReadUInt(8), ReadUInt(8), ReadUInt(8), ReadUInt(8)
+end
+local ReadRGBA = net.ReadRGBA
+
 function net.ReadColor()
-	return Color(ReadUInt(8), ReadUInt(8), ReadUInt(8), ReadUInt(8))
+	return Color(ReadRGBA())
 end
 
 function net.WriteNibble(i)

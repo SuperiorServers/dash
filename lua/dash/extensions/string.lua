@@ -6,6 +6,14 @@ function string.Random(chars)
 	return str
 end
 
+function string:StartsWith(str)
+	return (self:sub(1, str:len()) == str)
+end
+
+function string:EndsWith(str)
+	return (self:sub(self:len() - str:len()) == str)
+end
+
 function string:Apostrophe()
 	local len = self:len()
 	return (self:sub(len, len):lower() == 's') and '\'' or '\'s'
@@ -29,9 +37,9 @@ end
 
 local formathex = '%%%02X'
 function string:URLEncode()
-	return string.gsub(string.gsub(string.gsub(self, '\n', '\r\n'), '([^%w ])', function(c) 
-		return string.format(formathex, string.byte(c)) 
-	end), ' ', '+')   
+	return string.gsub(string.gsub(string.gsub(self, '\n', '\r\n'), '([^%w ])', function(c)
+		return string.format(formathex, string.byte(c))
+	end), ' ', '+')
 end
 
 function string:URLDecode()

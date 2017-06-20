@@ -1,0 +1,9 @@
+[submodule "lua/dash/submodules/lua-minstd"]
+	path = lua/dash/submodules/lua-minstd
+	url = https://github.com/Kefta/Lua-MINSTD
+[submodule "lua/dash/submodules/gmod-medialib"]
+	path = lua/dash/submodules/gmod-medialib
+	url = https://github.com/wyozi/gmod-medialib
+[submodule "lua/dash/submodules/spon"]
+	path = lua/dash/submodules/spon
+	url = https://github.com/thelastpenguin/sPON

@@ -21,7 +21,7 @@ function dash.LoadDir(...)
 		end
 		for _, f in ipairs(folders) do
 			if (f ~= 'client') and (f ~= 'server') then
-				ret[f] = 'dash/' .. dir  .. '/' .. f .. '/' .. f ..'.lua'
+				ret[f] = 'dash/' .. dir .. '/' .. f .. '/' .. f ..'.lua'
 			end
 		end
 	end

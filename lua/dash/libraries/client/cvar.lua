@@ -42,7 +42,7 @@ function cvar.Register(name)
 	if (not cvar.GetTable[name]) then
 		cvar.GetTable[name] = staged_cvars[name] or setmetatable({
 			Name = name,
-			ID 	= hash.MD5(name),
+			ID = hash.MD5(name),
 			Metadata = {}
 		}, CVAR)
 		staged_cvars[name] = nil
@@ -107,7 +107,7 @@ end
 
 function CVAR:SetType(typeid)
 	self.Validate = isfunction(typeid) and typeid or function(self, value)
-		return (TypeID(value) == typeid) 
+		return (TypeID(value) == typeid)
 	end
 	if (not self:Validate(self.Value)) then
 		self:Reset()

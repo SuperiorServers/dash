@@ -1,1 +1,1 @@
-minstd = dash.IncludeSH 'lua/dash/submodules/lua-minstd/minstd.lua'
+minstd = dash.IncludeSH 'dash/submodules/lua-minstd/minstd.lua'

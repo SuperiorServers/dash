@@ -1,4 +1,7 @@
-if (SERVER) and pcall(_require, 'hash') then return end -- Use gm_hash if we have it since it's a faster https://github.com/SuperiorServers/gm_hash
+if (SERVER) and file.Exists('lua/bin/gmsv_hash_' .. (system.IsWindows() and 'win32' or 'linux') .. '.dll', 'MOD') then -- Use gm_hash if we have it since it's a faster https://github.com/SuperiorServers/gm_hash
+	_require 'hash'
+	return
+end
 
 hash = {}
 
@@ -325,14 +328,14 @@ do
 	// This is the central step in the MD5 algorithm.
 	local function Step( func, w, x, y, z, flData, iStep )
 		w = w + func(x, y, z) + flData
-		
+
 		return bor( (w * 2^iStep) % 0x100000000, floor(w % 0x100000000 / 2^(0x20 - iStep)) ) + x
 	end
 
 	-- This is called every tick so it has to be super optimised
 	function hash.PseudoRandom( nSeed )
 		nSeed = nSeed % 0x100000000
-		
+
 		local a = Step(f1, 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, nSeed + 0xd76aa478, 7)
 		local d = Step(f1, 0x10325476, a, 0xefcdab89, 0x98badcfe, 0xe8c7b7d6, 12)
 		local c = Step(f1, 0x98badcfe, d, a, 0xefcdab89, 0x242070db, 17)
@@ -349,7 +352,7 @@ do
 		d = Step(f1, d, a, b, c, 0xfd987193, 12)
 		c = Step(f1, c, d, a, b, 0xa67943ae, 17)
 		b = Step(f1, b, c, d, a, 0x49b40821, 22)
-		
+
 		a = Step(f2, a, b, c, d, 0xf61e25e2, 5)
 		d = Step(f2, d, a, b, c, 0xc040b340, 9)
 		c = Step(f2, c, d, a, b, 0x265e5a51, 14)
@@ -383,7 +386,7 @@ do
 		d = Step(f3, d, a, b, c, 0xe6db99e5, 11)
 		c = Step(f3, c, d, a, b, 0x1fa27cf8, 16)
 		b = Step(f3, b, c, d, a, 0xc4ac5665, 23)
-		
+
 		a = Step(f4, a, b, c, d, nSeed + 0xf4292244, 6)
 		d = Step(f4, d, a, b, c, 0x432aff97, 10)
 		c = Step(f4, c, d, a, b, 0xab9423c7, 15)
@@ -400,7 +403,7 @@ do
 		d = Step(f4, d, a, b, c, 0xbd3af235, 10)
 		c = (0x98badcfe + Step(f4, c, d, a, b, 0x2ad7d2bb, 15)) % 0x100000000
 		b = (0xefcdab89 + Step(f4, b, c, d, a, 0xeb86d391, 21)) % 0x100000000
-		
+
 		return floor( b / 0x10000 ) % 0x100 + floor( b / 0x1000000 ) % 0x100 * 0x100 + c % 0x100 * 0x10000 + floor( c / 0x100 ) % 0x100 * 0x1000000
 	end
 end

@@ -1,1 +1,1 @@
-medialib = dash.IncludeSH 'lua/dash/submodules/gmod-medialib/dist/medialib.lua'
+medialib = dash.IncludeSH 'dash/submodules/gmod-medialib/dist/medialib.lua'

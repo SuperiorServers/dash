@@ -14,7 +14,7 @@ local issorted  = false
 local function addterm(name, message)
 	local _, reps 	= message:gsub('#', '#') -- replace with %s later
 	local i 		= #terms + 1
-	mapping[name] 	= i 
+	mapping[name] 	= i
 	terms[i] 		= message
 	varcount[i]		= reps
 end
@@ -25,7 +25,7 @@ local function sort()
 	end
 	issorted = true
 end
-hook.Add('InitPostEntity', 'term.InitPostEntity', sort)
+hook.Add('InitPostEntity', 'term.sort.InitPostEntity', sort)
 
 function term.Add(name, message)
 	local name = tostring(name)
@@ -60,13 +60,16 @@ function net.WriteTerm(id, ...)
 	for i = 1, varcount[id] do
 		local v = select(i, ...)
 		if isplayer(v) then
-			net.WriteUInt(0,2)
+			net.WriteUInt(0, 2)
 			net.WritePlayer(v)
 		elseif isentity(v) then
-			net.WriteUInt(1,2)
+			net.WriteUInt(1, 2)
 			net.WriteEntity(v)
+		elseif isnumber(v) then
+			net.WriteUInt(2, 2)
+			net.WriteUInt(v, 32)
 		else
-			net.WriteUInt(2,2)
+			net.WriteUInt(3, 2)
 			net.WriteString(tostring(v))
 		end
 	end
@@ -75,12 +78,14 @@ end
 function net.ReadTerm()
 	return terms[net.ReadUInt(bitcount)]:gsub('#', function()
 		local t = net.ReadUInt(2)
-		if (t == 0) then 
+		if (t == 0) then
 			local v = net.ReadPlayer()
 			return IsValid(v) and v:Name() or 'Unknown'
 		elseif (t == 1) then
 			local v = net.ReadEntity()
 			return IsValid(v) and (v.PrintName or v:GetClass()) or 'Unknown Entity'
+		elseif (t == 2) then
+			return tostring(net.ReadUInt(32))
 		end
 		return net.ReadString()
 	end)

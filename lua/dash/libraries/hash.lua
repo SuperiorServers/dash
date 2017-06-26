@@ -319,21 +319,21 @@ do
 	local floor = math.floor
 
 	// The four core functions - F1 is optimized somewhat
-	// local function f1(x, y, z) bit.bor( bit.band( x, y ), bit.band( bit.bnot( x ), z )) end
-	local function f1( x, y, z ) return bxor( z, band( x, bxor( y, z ))) end
-	local function f2( x, y, z ) return bxor( y, band( z, bxor( x, y ))) end
-	local function f3( x, y, z ) return bxor( bxor( x, y ), z ) end
-	local function f4( x, y, z ) return bxor( y, bor( x, bnot( z ))) end
+	// local function f1(x, y, z) bit.bor(bit.band(x, y), bit.band( bit.bnot( x), z)) end
+	local function f1(x, y, z) return bxor( z, band( x, bxor( y, z))) end
+	local function f2(x, y, z) return bxor( y, band( z, bxor( x, y))) end
+	local function f3(x, y, z) return bxor(bxor( x, y), z) end
+	local function f4(x, y, z) return bxor( y, bor( x, bnot( z))) end
 
 	// This is the central step in the MD5 algorithm.
-	local function Step( func, w, x, y, z, flData, iStep )
+	local function Step(func, w, x, y, z, flData, iStep)
 		w = w + func(x, y, z) + flData
 
-		return bor( (w * 2^iStep) % 0x100000000, floor(w % 0x100000000 / 2^(0x20 - iStep)) ) + x
+		return bor((w * 2^iStep) % 0x100000000, floor(w % 0x100000000 / 2^(0x20 - iStep))) + x
 	end
 
 	-- This is called every tick so it has to be super optimised
-	function hash.PseudoRandom( nSeed )
+	function hash.PseudoRandom(nSeed)
 		nSeed = nSeed % 0x100000000
 
 		local a = Step(f1, 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, nSeed + 0xd76aa478, 7)
@@ -404,6 +404,6 @@ do
 		c = (0x98badcfe + Step(f4, c, d, a, b, 0x2ad7d2bb, 15)) % 0x100000000
 		b = (0xefcdab89 + Step(f4, b, c, d, a, 0xeb86d391, 21)) % 0x100000000
 
-		return floor( b / 0x10000 ) % 0x100 + floor( b / 0x1000000 ) % 0x100 * 0x100 + c % 0x100 * 0x10000 + floor( c / 0x100 ) % 0x100 * 0x1000000
+		return floor(b / 0x10000) % 0x100 + floor(b / 0x1000000) % 0x100 * 0x100 + c % 0x100 * 0x10000 + floor( c / 0x100) % 0x100 * 0x1000000
 	end
 end

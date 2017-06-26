@@ -106,7 +106,7 @@ function string.FormatTime(num, limit)
 			local c = math.floor(num / TIME_WEEK)
 			ret[#ret + 1] = c .. ' ' .. plural('week', c)
 			num = num - TIME_WEEK * c
-		elseif (num >= TIME_DAY) or (templimit <= -4 )then
+		elseif (num >= TIME_DAY) or (templimit <= -4)then
 			local c = math.floor(num / TIME_DAY)
 			ret[#ret + 1] = c .. ' ' .. plural('day', c)
 			num = num - TIME_DAY * c

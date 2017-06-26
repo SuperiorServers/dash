@@ -14,7 +14,7 @@ function util.Tracer(vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, 
 	data:SetOrigin(vecEnd)
 	data:SetEntity(pEntity)
 	data:SetScale(flVelocity)
-	
+
 	if (iParticleID ~= nil) then
 		data:SetHitBox(iParticleID)
 	end
@@ -28,7 +28,7 @@ function util.Tracer(vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, 
 
 	if (iAttachment ~= TRACER_DONT_USE_ATTACHMENT) then
 		fFlags = bit.bor(fFlags, TRACER_FLAG_USEATTACHMENT)
-		data:SetAttachment(iAttachment )
+		data:SetAttachment(iAttachment)
 	end
 
 	data:SetFlags(fFlags)
@@ -90,7 +90,7 @@ function util.FindEmptyPos(pos, area, steps)
 			return pos
 		end
 	end
-	
+
 	return pos
 end
 

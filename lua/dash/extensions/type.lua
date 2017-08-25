@@ -1,51 +1,12 @@
 local getmetatable 	= getmetatable
 local tonumber 		= tonumber
+local isentity		= isentity
 
-local STRING 	= getmetatable ''
-local ANGLE 	= FindMetaTable 'Angle'
-local MATRIX 	= FindMetaTable 'VMatrix'
-local VECTOR 	= FindMetaTable 'Vector'
-local MATERIAL 	= FindMetaTable 'IMaterial'
 local ENTITY 	= FindMetaTable 'Entity'
 local PLAYER 	= FindMetaTable 'Player'
-local PHYS 		= FindMetaTable 'PhysObj'
 local WEAPON 	= FindMetaTable 'Weapon'
 local NPC 		= FindMetaTable 'NPC'
-local NEXTBOT 	= FindMetaTable 'NextBot'
 local VEHICLE 	= FindMetaTable 'Vehicle'
-
-local entmts = {
-	[ENTITY] 	= true,
-	[VEHICLE] 	= true,
-	[PHYS] 		= true,
-	[WEAPON] 	= true,
-	[NPC] 		= true,
-	[PLAYER]	= true,
-}
-
-if (SERVER) then
-	entmts[NEXTBOT] = true
-end
-
-function isstring(v)
-	return (getmetatable(v) == STRING)
-end
-
-function isangle(v)
-	return (getmetatable(v) == ANGLE)
-end
-
-function ismatrix(v)
-	return (getmetatable(v) == MATRIX)
-end
-
-function isvector(v)
-	return (getmetatable(v) == VECTOR)
-end
-
-function ismaterial(v)
-	return (getmetatable(v) == MATERIAL)
-end
 
 function isnumber(v)
 	return (v ~= nil) and (v == tonumber(v))
@@ -55,13 +16,8 @@ function isbool(v)
 	return (v == true) or (v == false)
 end
 
-function isentity(v)
-	return (entmts[getmetatable(v)] == true)
-end
-IsEntity = isentity
-
 function isplayer(v)
-	return (getmetatable(v) == PLAYER)
+	return isentity(v) and v:IsPlayer()
 end
 
 
@@ -73,15 +29,15 @@ function PLAYER:IsPlayer()
 	return true
 end
 
-function PHYS:IsPlayer()
-	return false
-end
-
 function WEAPON:IsPlayer()
 	return false
 end
 
 function NPC:IsPlayer()
+	return false
+end
+
+function VEHICLE:IsPlayer()
 	return false
 end
 
@@ -94,15 +50,15 @@ function PLAYER:IsWeapon()
 	return false
 end
 
-function PHYS:IsWeapon()
-	return false
-end
-
 function WEAPON:IsWeapon()
 	return true
 end
 
 function NPC:IsWeapon()
+	return false
+end
+
+function VEHICLE:IsWeapon()
 	return false
 end
 
@@ -115,10 +71,6 @@ function PLAYER:IsNPC()
 	return false
 end
 
-function PHYS:IsNPC()
-	return false
-end
-
 function WEAPON:IsNPC()
 	return false
 end
@@ -127,50 +79,55 @@ function NPC:IsNPC()
 	return true
 end
 
-
-function ENTITY:IsNextbot()
-	return false
-end
-
-function PLAYER:IsNextbot()
-	return false
-end
-
-function PHYS:IsNextbot()
-	return false
-end
-
-function WEAPON:IsNextbot()
-	return false
-end
-
-function NPC:IsNextbot()
+function VEHICLE:IsNPC()
 	return false
 end
 
 
-function ENTITY:IsPhysObj()
+function ENTITY:IsVehicle()
 	return false
 end
 
-function PLAYER:IsPhysObj()
+function PLAYER:IsVehicle()
 	return false
 end
 
-function PHYS:IsPhysObj()
+function WEAPON:IsVehicle()
 	return false
 end
 
-function WEAPON:IsPhysObj()
+function NPC:IsVehicle()
 	return false
 end
 
-function NPC:IsPhysObj()
-	return false
+function VEHICLE:IsVehicle()
+	return true
 end
-
 
 if (SERVER) then
+	function ENTITY:IsNextbot()
+		return false
+	end
+
+	function PLAYER:IsNextbot()
+		return false
+	end
+
+	function WEAPON:IsNextbot()
+		return false
+	end
+
+	function NPC:IsNextbot()
+		return false
+	end
+
+	function VEHICLE:IsNextbot()
+		return false
+	end
+
+
+	local NEXTBOT = FindMetaTable 'NextBot'
+	
 	function NEXTBOT:IsPlayer()
 		return false
 	end
@@ -183,7 +140,7 @@ if (SERVER) then
 		return false
 	end
 
-	function NEXTBOT:IsPhysObj()
+	function NEXTBOT:IsVehicle()
 		return false
 	end
 

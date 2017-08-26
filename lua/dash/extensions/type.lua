@@ -147,4 +147,47 @@ if (SERVER) then
 	function NEXTBOT:IsNextbot()
 		return true
 	end
+else
+	function ENTITY:IsCSEnt()
+		return false
+	end
+
+	function PLAYER:IsCSEnt()
+		return false
+	end
+
+	function WEAPON:IsCSEnt()
+		return false
+	end
+
+	function NPC:IsCSEnt()
+		return false
+	end
+
+	function VEHICLE:IsCSEnt()
+		return false
+	end
+
+
+	local CSENT = FindMetaTable 'CSEnt'
+	
+	function CSEnt:IsPlayer()
+		return false
+	end
+
+	function CSEnt:IsWeapon()
+		return false
+	end
+
+	function CSEnt:IsNPC()
+		return false
+	end
+
+	function CSEnt:IsVehicle()
+		return false
+	end
+
+	function CSEnt:IsCSEnt()
+		return true
+	end
 end

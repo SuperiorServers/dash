@@ -21,7 +21,7 @@ function redis.ConnectClient(ip, port, password, database, autopoll, autocommit)
 	local self, err = redis.CreateClient()
 
 	if (not self) then
-		error(err) 
+		error(err)
 	end
 
 	self.Hostname = ip
@@ -30,7 +30,7 @@ function redis.ConnectClient(ip, port, password, database, autopoll, autocommit)
 	self.Database = database or 0
 	self.PendingCommands = 0
 
-	if (not self:TryConnect(ip, port, password, database)) then 
+	if (not self:TryConnect(ip, port, password, database)) then
 		return self
 	end
 
@@ -112,6 +112,8 @@ function REDIS_CLIENT:TryConnect(ip, port, password, database)
 	end
 
 	self:Log('Connected successfully.')
+
+	hook.Call('RedisClientConnected', nil, self)
 
 	return true
 end

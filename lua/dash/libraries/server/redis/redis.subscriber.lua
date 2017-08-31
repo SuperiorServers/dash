@@ -27,9 +27,11 @@ function redis.ConnectSubscriber(ip, port, autopoll, autocommit) -- no auth like
 	self.Hostname = ip
 	self.Port = port
 	self.PendingCommands = 0
+	self.Subscriptions = {}
+	self.PSubscriptions = {}
 
-	if (not self:TryConnect(ip, port)) then 
-		return self 
+	if (not self:TryConnect(ip, port)) then
+		return self
 	end
 
 	if (autopoll ~= false) or (autocommit ~= false) then
@@ -77,6 +79,16 @@ function REDIS_SUBSCRIBER:TryConnect(ip, port)
 
 	self:Log('Connected successfully.')
 
+	hook.Call('RedisSubscriberConnected', nil, self)
+
+	for k, v in pairs(self.Subscriptions) do
+		self:Subscribe(v.Channel, v.Callback, v.OnMessage)
+	end
+
+	for k, v in pairs(self.PSubscriptions) do
+		self:PSubscribe(v.Channel, v.Callback, v.OnMessage)
+	end
+
 	return true
 end
 
@@ -99,6 +111,11 @@ function REDIS_SUBSCRIBER:Subscribe(channel, callback, onmessage)
 			end
 		end)
 	end
+	self.Subscriptions[channel] = {
+		Channel = channel,
+		Callback = callback,
+		OnMessage = onmessage
+	}
 	self.PendingCommands = self.PendingCommands + 1
 	return subscribe(self, channel, callback)
 end
@@ -106,6 +123,7 @@ end
 local unsubscribe = REDIS_SUBSCRIBER.Unsubscribe
 function REDIS_SUBSCRIBER:Unsubscribe(channel, callback)
 	hook.Remove('RedisSubscriberMessage', channel)
+	self.Subscriptions[channel] = nil
 	self.PendingCommands = self.PendingCommands + 1
 	return unsubscribe(self, channel, callback)
 end
@@ -113,19 +131,25 @@ end
 local psubscribe = REDIS_SUBSCRIBER.PSubscribe
 function REDIS_SUBSCRIBER:PSubscribe(channel, callback, onmessage)
 	if onmessage then
-		hook.Add('RedisSubscriberMessage', channel, function(db, _channel, message)
+		hook.Add('RedisPSubscriberMessage', channel, function(db, _channel, message)
 			if (db == self) and (_channel == channel) then
 				return onmessage(self, message)
 			end
 		end)
 	end
+	self.PSubscriptions[channel] = {
+		Channel = channel,
+		Callback = callback,
+		OnMessage = onmessage
+	}
 	self.PendingCommands = self.PendingCommands + 1
 	return psubscribe(self, channel, callback)
 end
 
 local punsubscribe = REDIS_SUBSCRIBER.PUnsubscribe
 function REDIS_SUBSCRIBER:PUnsubscribe(channel, callback)
-	hook.Remove('RedisSubscriberMessage', channel)
+	hook.Remove('RedisPSubscriberMessage', channel)
+	self.PSubscriptions[channel] = nil
 	self.PendingCommands = self.PendingCommands + 1
 	return punsubscribe(self, channel, callback)
 end

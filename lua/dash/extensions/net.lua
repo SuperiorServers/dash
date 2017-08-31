@@ -116,14 +116,14 @@ end
 
 function net.WritePlayer(pl)
 	if IsValid(pl) then
-		WriteUInt(pl:EntIndex(), 7)
+		WriteUInt(pl:EntIndex(), 8)
 	else
-		WriteUInt(0, 7)
+		WriteUInt(0, 8)
 	end
 end
 
 function net.ReadPlayer()
-	local i = ReadUInt(7)
+	local i = ReadUInt(8)
 	if (not i) then return end
 	return Entity(i)
 end

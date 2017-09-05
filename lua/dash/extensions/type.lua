@@ -8,10 +8,6 @@ local WEAPON 	= FindMetaTable 'Weapon'
 local NPC 		= FindMetaTable 'NPC'
 local VEHICLE 	= FindMetaTable 'Vehicle'
 
-function isnumber(v)
-	return (v ~= nil) and (v == tonumber(v))
-end
-
 function isbool(v)
 	return (v == true) or (v == false)
 end

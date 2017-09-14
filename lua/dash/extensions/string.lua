@@ -10,10 +10,6 @@ function string:StartsWith(str)
 	return (self:sub(1, str:len()) == str)
 end
 
-function string:EndsWith(str)
-	return (self:sub(self:len() - str:len()) == str)
-end
-
 function string:Apostrophe()
 	local len = self:len()
 	return (self:sub(len, len):lower() == 's') and '\'' or '\'s'

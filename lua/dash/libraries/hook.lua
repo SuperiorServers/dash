@@ -4,31 +4,49 @@ hook = setmetatable({}, {
 	end
 })
 
-local hook 			= hook
-local table_remove 	= table.remove
 local debug_info 	= debug.getinfo
-local isstring 			= isstring
-local isfunction = isfunction
-local ipairs 		= ipairs
+local isstring 		= isstring
+local isfunction 	= isfunction
 local IsValid 		= IsValid
 
-local hooks 		= {}
-local mappings 		= {}
+local hook_callbacks = {}
+local name_to_index	 = {}
+local index_to_name	 = {}
 
-function hook.GetTable()
-	return table.Copy(mappings)
+function hook.GetTable() -- This function is now slow
+	local ret = {}
+
+	for id, collection in pairs(name_to_index) do
+		ret[id] = {}
+
+		for name, index in pairs(collection) do
+			ret[id][name] = hook_callbacks[id][index]
+		end
+	end
+
+	return ret
 end
 
-function hook.Call(name, gm, ...) 
-	if hooks[name] ~= nil then
-		for k, v in ipairs(hooks[name]) do
-			local a, b, c, d, e = v(...)
-			if a ~= nil then
-				return a, b, c, d, e
+function hook.Exists(name, id)
+	return (name_to_index[name] ~= nil) and (name_to_index[name][id] ~= nil)
+end
+
+function hook.Call(name, gm, ...)
+	local info = hook_callbacks[name]
+
+	if (info ~= nil) then
+		for i = 1, #info do
+			local v = info[i]
+			if (v ~= nil) then
+				local a, b, c, d, e, f = v(...)
+				if (a ~= nil) then
+					return a, b, c, d, e, f
+				end
 			end
 		end
 	end
-	if gm ~= nil and gm[name] then
+
+	if (gm ~= nil) and gm[name] then
 		return gm[name](gm, ...)
 	end
 end
@@ -39,32 +57,61 @@ function hook.Run(name, ...)
 end
 
 function hook.Remove(name, id)
-	local collection = hooks[name]
-	if collection ~= nil then
-		local func = mappings[name][id]
-		if func ~= nil then
-			for k,v in ipairs(collection) do
-				if func == v then
-					table_remove(collection, k)
-					break 
+	local hook_callbacks = hook_callbacks[name]
+
+	if (hook_callbacks ~= nil) then
+
+		local namemap = name_to_index[name]
+		local indexmap = index_to_name[name]
+		local index = namemap[id]
+
+		if (index ~= nil) then -- todo make this faster
+			local count = #indexmap
+
+			for i = index, count do
+				local nexti = i + 1
+
+				hook_callbacks[i] = hook_callbacks[nexti]
+				hook_callbacks[nexti] = nil
+
+				if (indexmap[i] ~= nil) then
+					namemap[indexmap[i]] = nil
+				end
+
+				indexmap[i] = indexmap[nexti]
+				indexmap[nexti] = nil
+
+				if (indexmap[i] ~= nil) then
+					namemap[indexmap[i]] = i
 				end
 			end
 		end
-		mappings[name][id] = nil
+
+		name_to_index[name][id] = nil
 	end
 end
 
-local hook_Remove = hook.Remove
-function hook.Add(name, id, func) 
-	if isfunction(id) then
-		func = id
-		id = debug_info(func).short_src
-	end
-	hook_Remove(name, id) -- properly simulate hook overwrite behavior
 
-	if not isstring(id) then
-		local orig = func
-		func = function(...)
+local hook_Exists, hook_Remove = hook.Exists, hook.Remove
+function hook.Add(name, id, callback)
+	if isfunction(id) then
+		callback = id
+		id = debug_info(callback).short_src
+	end
+
+	if (hook_callbacks[name] == nil) then
+		hook_callbacks[name] = {}
+		name_to_index[name] = {}
+		index_to_name[name] = {}
+	end
+
+	if hook_Exists(name, id) then
+		hook_Remove(name, id) -- properly simulate hook overwrite behavior
+	end
+
+	if (not isstring(id)) then
+		local orig = callback
+		callback = function(...)
 			if IsValid(id) then
 				return orig(id, ...)
 			else
@@ -73,16 +120,9 @@ function hook.Add(name, id, func)
 		end
 	end
 
-	local collection = hooks[name]
-	
-	if collection == nil then
-		collection = {}
-		hooks[name] = collection
-		mappings[name] = {}
-	end
 
-	local mapping = mappings[name]
-
-	collection[#collection+1] = func
-	mapping[id] = func
+	local index = #hook_callbacks[name] + 1
+	hook_callbacks[name][index] = callback
+	name_to_index[name][id] = index
+	index_to_name[name][index] = id
 end

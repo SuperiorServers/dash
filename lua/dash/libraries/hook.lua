@@ -32,11 +32,11 @@ function hook.Exists(name, id)
 end
 
 function hook.Call(name, gm, ...)
-	local info = hook_callbacks[name]
+	local callbacks = hook_callbacks[name]
 
-	if (info ~= nil) then
-		for i = 1, #info do
-			local v = info[i]
+	if (callbacks ~= nil) then
+		for i = 1, #callbacks do
+			local v = callbacks[i]
 			if (v ~= nil) then
 				local a, b, c, d, e, f = v(...)
 				if (a ~= nil) then
@@ -46,9 +46,16 @@ function hook.Call(name, gm, ...)
 		end
 	end
 
-	if (gm ~= nil) and gm[name] then
-		return gm[name](gm, ...)
+	if (not gm) then
+		return
 	end
+
+	local callback = gm[name]
+	if (not callback) then
+		return
+	end
+
+	return callback(gm, ...)
 end
 
 local hook_Call = hook.Call
@@ -57,33 +64,33 @@ function hook.Run(name, ...)
 end
 
 function hook.Remove(name, id)
-	local hook_callbacks = hook_callbacks[name]
+	local callbacks = hook_callbacks[name]
 
-	if (hook_callbacks ~= nil) then
-
+	if (callbacks ~= nil) then
 		local namemap = name_to_index[name]
 		local indexmap = index_to_name[name]
 		local index = namemap[id]
 
-		if (index ~= nil) then -- todo make this faster
-			local count = #indexmap
-
-			for i = index, count do
+		if (index ~= nil) then
+			for i = index, #indexmap do
 				local nexti = i + 1
 
-				hook_callbacks[i] = hook_callbacks[nexti]
-				hook_callbacks[nexti] = nil
+				callbacks[i] = callbacks[nexti]
+				callbacks[nexti] = nil
 
-				if (indexmap[i] ~= nil) then
-					namemap[indexmap[i]] = nil
+				local indexmapval = indexmap[i]
+				if (indexmapval ~= nil) then
+					namemap[indexmapval] = nil
 				end
 
-				indexmap[i] = indexmap[nexti]
+				indexmapval = indexmap[nexti]
 				indexmap[nexti] = nil
 
-				if (indexmap[i] ~= nil) then
-					namemap[indexmap[i]] = i
+				if (indexmapval ~= nil) then
+					namemap[indexmapval] = i
 				end
+
+				indexmap[i] = indexmapval
 			end
 		end
 

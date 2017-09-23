@@ -10,25 +10,14 @@ local isfunction 	= isfunction
 local IsValid 		= IsValid
 
 local hook_callbacks = {}
-local name_to_index	 = {}
-local index_to_name	 = {}
+local hook_mapping = {}
 
 function hook.GetTable() -- This function is now slow
-	local ret = {}
-
-	for id, collection in pairs(name_to_index) do
-		ret[id] = {}
-
-		for name, index in pairs(collection) do
-			ret[id][name] = hook_callbacks[id][index]
-		end
-	end
-
-	return ret
+	return table.Copy(hook_mapping)
 end
 
 function hook.Exists(name, id)
-	return (name_to_index[name] ~= nil) and (name_to_index[name][id] ~= nil)
+	return (hook_mapping[name] ~= nil) and (hook_mapping[name][id] ~= nil)
 end
 
 function hook.Call(name, gm, ...)
@@ -67,34 +56,18 @@ function hook.Remove(name, id)
 	local callbacks = hook_callbacks[name]
 
 	if (callbacks ~= nil) then
-		local namemap = name_to_index[name]
-		local indexmap = index_to_name[name]
-		local index = namemap[id]
+		local callback = hook_mapping[name][id]
+		local count = #callbacks
 
-		if (index ~= nil) then
-			for i = index, #indexmap do
-				local nexti = i + 1
-
-				callbacks[i] = callbacks[nexti]
-				callbacks[nexti] = nil
-
-				local indexmapval = indexmap[i]
-				if (indexmapval ~= nil) then
-					namemap[indexmapval] = nil
+		for i = 1, count do
+			if (callbacks[i] == callback) then
+				for newi = i, count do
+					callbacks[newi] = callbacks[newi + 1]
 				end
-
-				indexmapval = indexmap[nexti]
-				indexmap[nexti] = nil
-
-				if (indexmapval ~= nil) then
-					namemap[indexmapval] = i
-				end
-
-				indexmap[i] = indexmapval
+				hook_mapping[name][id] = nil
+				break
 			end
 		end
-
-		name_to_index[name][id] = nil
 	end
 end
 
@@ -108,8 +81,7 @@ function hook.Add(name, id, callback)
 
 	if (hook_callbacks[name] == nil) then
 		hook_callbacks[name] = {}
-		name_to_index[name] = {}
-		index_to_name[name] = {}
+		hook_mapping[name] = {}
 	end
 
 	if hook_Exists(name, id) then
@@ -127,9 +99,7 @@ function hook.Add(name, id, callback)
 		end
 	end
 
-
 	local index = #hook_callbacks[name] + 1
 	hook_callbacks[name][index] = callback
-	name_to_index[name][id] = index
-	index_to_name[name][index] = id
+	hook_mapping[name][id] = callback
 end

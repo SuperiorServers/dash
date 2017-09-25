@@ -1,24 +1,26 @@
 function table.Filter(tab, callback)
-	local i, e, c = 1, #tab, 1
+	local i, e, c = 0, #tab, 1
 
 	if (e == 0) then
 		goto abort
 	end
 
 	::startfilter::
+	i = i + 1
 	if callback(tab[i]) then
 		tab[c] = tab[i]
 		c = c + 1
 	end
-	i = i + 1
+
 	if (i < e) then
 		goto startfilter
 	end
 
-	i = c
+	i = c - 1
 	::startprune::
-	tab[i] = nil
 	i = i + 1
+	tab[i] = nil
+
 	if (i < e) then
 		goto startprune
 	end
@@ -31,18 +33,19 @@ end
 function table.FilterCopy(tab, callback)
 	local ret = {}
 
-	local i, e, c = 1, #tab, 1
+	local i, e, c = 0, #tab, 1
 
 	if (e == 0) then
 		goto abort
 	end
 
 	::startfilter::
+	i = i + 1
 	if callback(tab[i]) then
 		ret[c] = tab[i]
 		c = c + 1
 	end
-	i = i + 1
+
 	if (i < e) then
 		goto startfilter
 	end

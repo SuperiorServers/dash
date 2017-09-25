@@ -1,9 +1,3 @@
-hook = setmetatable({}, {
-	__call = function(self, ...)
-		return self.Add(...)
-	end
-})
-
 local debug_info 	= debug.getinfo
 local isstring 		= isstring
 local isfunction 	= isfunction
@@ -14,21 +8,21 @@ local hook_mapping 	 = {}
 local hook_counts 	 = {}
 local hooks_remap 	 = false
 
-function hook.GetTable() -- This function is now slow
+local function GetTable() -- This function is now slow
 	return table.Copy(hook_mapping)
 end
 
-function hook.Exists(name, id)
+local function Exists(name, id)
 	return (hook_mapping[name] ~= nil) and (hook_mapping[name][id] ~= nil)
 end
 
-function hook.Call(name, gm, ...)
+local function Call(name, gm, ...)
 	local callbacks = hook_callbacks[name]
 
 	if (callbacks ~= nil) then
-		local count = hook_counts[name]
-		local i = 0
-		::start::
+		local i, count = 0, hook_counts[name]
+
+		::runhook::
 		i = i + 1
 		local v = callbacks[i]
 		if (v ~= nil) then
@@ -37,22 +31,34 @@ function hook.Call(name, gm, ...)
 				return a, b, c, d, e, f
 			end
 		end
-		if (i < count) then goto start end
+		if (i < count) then goto runhook end
 	end
 
 	if (hooks_remap) then
-		local count = 0
-		hook_callbacks[name] = {}
-		for i = 1, hook_counts[name] do
-			if (callbacks[i] ~= nil) then
-				count = count + 1
-				hook_callbacks[name][count] = callbacks[i]
-			end
+		local i, stop, offset = 0, hook_counts[name], 0
+
+		::remaphook::
+		i = i + 1
+
+		callbacks[i - offset] = callbacks[i]
+
+		if (callbacks[i] == nil) then
+			offset = offset + 1
 		end
-		hook_counts[name] = count
+
+		if (offset > 0) then
+			callbacks[i] = nil
+		end
+
+		if (i < stop) then
+			goto remaphook
+		end
+
+		hook_counts[name] = i - offset
 		hooks_remap = false
 	end
 
+	::callgm::
 	if (not gm) then
 		return
 	end
@@ -65,12 +71,11 @@ function hook.Call(name, gm, ...)
 	return callback(gm, ...)
 end
 
-local hook_Call = hook.Call
-function hook.Run(name, ...)
-	return hook_Call(name, GAMEMODE, ...)
+local function Run(name, ...)
+	return Call(name, GAMEMODE, ...)
 end
 
-function hook.Remove(name, id)
+local function Remove(name, id)
 	local callbacks = hook_callbacks[name]
 
 	if (not callbacks) then
@@ -97,9 +102,7 @@ function hook.Remove(name, id)
 	end
 end
 
-
-local hook_Exists, hook_Remove = hook.Exists, hook.Remove
-function hook.Add(name, id, callback)
+local function Add(name, id, callback)
 	if isfunction(id) then
 		callback = id
 		id = debug_info(callback).short_src
@@ -114,8 +117,8 @@ function hook.Add(name, id, callback)
 		hook_mapping[name] = {}
 	end
 
-	if hook_Exists(name, id) then
-		hook_Remove(name, id) -- properly simulate hook overwrite behavior
+	if Exists(name, id) then
+		Remove(name, id) -- properly simulate hook overwrite behavior
 	end
 
 	hook_counts[name] = (hook_counts[name] or 0) + 1
@@ -136,3 +139,17 @@ function hook.Add(name, id, callback)
 	hook_callbacks[name][index] = callback
 	hook_mapping[name][id] = callback
 end
+
+
+hook = setmetatable({
+	Remove = Remove,
+	GetTable = GetTable,
+	Exists = Exists,
+	Add = Add,
+	Call = Call,
+	Run = Run
+}, {
+	__call = function(self, ...)
+		return self.Add(...)
+	end
+})

@@ -4,23 +4,30 @@ local isfunction 	= isfunction
 local IsValid 		= IsValid
 
 local hook_callbacks = {}
-local hook_mapping 	 = {}
-local hook_counts 	 = {}
-local hooks_remap 	 = false
+local hook_index 	 = {}
+local hook_id		 = {}
 
 local function GetTable() -- This function is now slow
-	return table.Copy(hook_mapping)
+	local ret = {}
+	for name, callbacks in pairs(hook_callbacks) do
+		ret[name] = {}
+		for index, callback in pairs(callbacks) do
+			ret[name][hook_id[name][index]] = callback
+		end
+	end
+	return ret
 end
 
 local function Exists(name, id)
-	return (hook_mapping[name] ~= nil) and (hook_mapping[name][id] ~= nil)
+	return (hook_index[name] ~= nil) and (hook_index[name][id] ~= nil)
 end
 
 local function Call(name, gm, ...)
 	local callbacks = hook_callbacks[name]
 
 	if (callbacks ~= nil) then
-		local i, count = 0, hook_counts[name]
+
+		local i = 0
 
 		::runhook::
 		i = i + 1
@@ -30,35 +37,10 @@ local function Call(name, gm, ...)
 			if (a ~= nil) then
 				return a, b, c, d, e, f
 			end
+			goto runhook
 		end
-		if (i < count) then goto runhook end
 	end
 
-	if (hooks_remap) then
-		local i, stop, offset = 0, hook_counts[name], 0
-
-		::remaphook::
-		i = i + 1
-
-		callbacks[i - offset] = callbacks[i]
-
-		if (callbacks[i] == nil) then
-			offset = offset + 1
-		end
-
-		if (offset > 0) then
-			callbacks[i] = nil
-		end
-
-		if (i < stop) then
-			goto remaphook
-		end
-
-		hook_counts[name] = i - offset
-		hooks_remap = false
-	end
-
-	::callgm::
 	if (not gm) then
 		return
 	end
@@ -82,23 +64,31 @@ local function Remove(name, id)
 		return
 	end
 
-	local callback = hook_mapping[name][id]
+	local indexes = hook_index[name]
+	local index = indexes[id]
 
-	if (not callback) then
+	if (not index) then
 		return
 	end
 
 	local count = #callbacks
+	if (count == index) then
+		callbacks[index] = nil
+		indexes[id] = nil
+		hook_id[name][index] = nil
+	else
+		local ids = hook_id[name]
 
-	for i = 1, count do
-		if (callbacks[i] == callback) then
-			for newi = i, count do
-				callbacks[newi] = callbacks[newi + 1]
-			end
-			hook_mapping[name][id] = nil
-			hook_counts[name] = hook_counts[name] - 1
-			return
-		end
+		callbacks[index] = callbacks[count]
+		callbacks[count] = nil
+
+		local lastid = ids[count]
+
+		indexes[id] = nil
+		indexes[lastid] = index
+
+		ids[index] = lastid
+		ids[count] = nil
 	end
 end
 
@@ -114,15 +104,16 @@ local function Add(name, id, callback)
 
 	if (hook_callbacks[name] == nil) then
 		hook_callbacks[name] = {}
-		hook_mapping[name] = {}
+		hook_index[name] 	 = {}
+		hook_id[name] 	 = {}
 	end
 
 	if Exists(name, id) then
 		Remove(name, id) -- properly simulate hook overwrite behavior
 	end
 
-	hook_counts[name] = (hook_counts[name] or 0) + 1
-	local index = hook_counts[name]
+	local callbacks = hook_callbacks[name]
+	local indexes = hook_index[name]
 
 	if (not isstring(id)) then
 		local orig = callback
@@ -130,14 +121,21 @@ local function Add(name, id, callback)
 			if IsValid(id) then
 				return orig(id, ...)
 			end
-			hook_mapping[name][id] = nil
-			hook_callbacks[name][index] = nil
-			hooks_remap = true
+
+			local index = indexes[id]
+			Remove(name, id)
+
+			local nextcallback = callbacks[index]
+			if (nextcallback ~= nil) then
+				return nextcallback(...)
+			end
 		end
 	end
 
-	hook_callbacks[name][index] = callback
-	hook_mapping[name][id] = callback
+	local index = #callbacks + 1
+	callbacks[index] = callback
+	indexes[id] = index
+	hook_id[name][index] = id
 end
 
 

@@ -122,3 +122,12 @@ function resource.AddDir(dir, recursive)
 		end
 	end
 end
+
+function IsValid(object)
+	if (not object) then return false end
+
+	local isvalid = object.IsValid
+	if (not isvalid) then return false end
+
+	return isvalid(object)
+end

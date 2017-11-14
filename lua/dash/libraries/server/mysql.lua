@@ -46,7 +46,7 @@ local color_prefix, color_text = Color(185,0,255), Color(250,250,250)
 
 local query_queue	= {}
 
-function mysql.Connect(hostname, username, password, database, port, optional_socketpath, optional_clientflags)
+function mysql.Connect(hostname, username, password, database, port, optional_socketpath, optional_clientflags, optional_connectcallback)
 	local db_obj = setmetatable({
 		Hostname = hostname,
 		Username = username,
@@ -59,7 +59,7 @@ function mysql.Connect(hostname, username, password, database, port, optional_so
 		return mysql.GetTable[tostring(db_obj)]
 	end
 
-	db_obj.Handle, db_obj.Error = tmysql.initialize(hostname, username, password, database, port, optional_socketpath, optional_clientflags)
+	db_obj.Handle, db_obj.Error = tmysql.initialize(hostname, username, password, database, port, optional_socketpath, optional_clientflags, optional_connectcallback)
 
 	if db_obj.Error then
 		db_obj:Log(db_obj.Error)
@@ -112,7 +112,7 @@ local function handlequery(db, query, results, cback)
 				query_queue[query].Trys = query_queue[query].Trys + 1
 			else
 				query_queue[query] = {
-					Db 		= db, 
+					Db 		= db,
 					Query 	= query,
 					Trys 	= 0,
 					Cback 	= cback
@@ -149,7 +149,7 @@ function DATABASE:QuerySync(query, ...)
 			data, lastid, affected, time = _data, _lastid, _affected, _time
 		end)
 	end
-	
+
 	while (not data) and (start >= SysTime()) do
 		self:Poll()
 	end
@@ -206,7 +206,7 @@ function DATABASE:GetServerVersion()
 end
 
 --[[function STATEMENT:Run(...)
-	
+
 end]]
 
 function STATEMENT:RunSync(...)

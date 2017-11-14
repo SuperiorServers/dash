@@ -171,3 +171,11 @@ function string.Explode(separator, str, withpattern)
 
 	return ret
 end
+
+function string:MaxCharacters(num, withellipses)
+	if (#self <= num) then return self end
+
+	local str = self:sub(1, num)
+
+	return withellipses and (str .. '...') or str
+end

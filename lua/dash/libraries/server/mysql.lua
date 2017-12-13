@@ -59,11 +59,15 @@ function mysql.Connect(hostname, username, password, database, port, optional_so
 		Port 	 = port,
 	}, DATABASE)
 
-	if mysql.GetTable[tostring(db_obj)] then
-		return mysql.GetTable[tostring(db_obj)]
+	local cached = mysql.GetTable[tostring(db_obj)]
+	if cached then
+		cached:Log('Recycled connection.')
+		return cached
 	end
 
 	db_obj.Handle, db_obj.Error = tmysql.Connect(hostname, username, password, database, port, optional_socketpath, optional_clientflags, optional_connectcallback)
+
+	--db_obj.Handle:Query('show tables', PrintTable)
 
 	if db_obj.Error then
 		db_obj:Log(db_obj.Error)
@@ -74,6 +78,10 @@ function mysql.Connect(hostname, username, password, database, port, optional_so
 
 		db_obj:Log('Connected successfully.')
 	end
+
+	hook.Add('Think', db_obj.Handle, function()
+		db_obj.Handle:Poll()
+	end)
 
 	--self:SetOption(MYSQL_SET_CLIENT_IP, GetConVarString('ip'))
 	--self:Connect()
@@ -111,6 +119,7 @@ local retry_errors = {
 local function handlequery(db, query, results, cback)
 	if (results[1].error ~= nil) then
 		db:Log(results[1].error)
+		db:Log(query)
 		if retry_errors[results[1].error] then
 			if query_queue[query] then
 				query_queue[query].Trys = query_queue[query].Trys + 1

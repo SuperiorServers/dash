@@ -17,20 +17,29 @@ function redis.GetClients()
 	return clients
 end
 
-function redis.ConnectClient(ip, port, password, database, autopoll, autocommit)
+function redis.ConnectClient(hostname, port, password, database, autopoll, autocommit)
+	for k, v in ipairs(redis.GetSubscribers()) do
+		if (v.Hostname == hostname) and (v.Port == port) and (v.Password == password) and (v.Database == database) and (v.AutoPoll == autopoll) and (v.AutoCommit == autocommit) then
+			v:Log('Recycled connection.')
+			return v
+		end
+	end
+
 	local self, err = redis.CreateClient()
 
 	if (not self) then
 		error(err)
 	end
 
-	self.Hostname = ip
+	self.Hostname = hostname
 	self.Port = port
 	self.Password = password
+	self.AutoPoll = autopoll
+	self.AutoCommit = autocommit
 	self.Database = database or 0
 	self.PendingCommands = 0
 
-	if (not self:TryConnect(ip, port, password, database)) then
+	if (not self:TryConnect(hostname, port, password, database)) then
 		return self
 	end
 

@@ -17,20 +17,29 @@ function redis.GetSubscribers()
 	return subscribers
 end
 
-function redis.ConnectSubscriber(ip, port, autopoll, autocommit) -- no auth like clients, iptables or localhost it I suppose.
+function redis.ConnectSubscriber(hostname, port, autopoll, autocommit) -- no auth like clients, iptables or localhost it I suppose.
+	for k, v in ipairs(redis.GetSubscribers()) do
+		if (v.Hostname == hostname) and (v.Port == port) and (v.AutoPoll == autopoll) and (v.AutoCommit == autocommit) then
+			v:Log('Recycled connection.')
+			return v
+		end
+	end
+
 	local self, err = redis.CreateSubscriber()
 
 	if (not self) then
 		error(err)
 	end
 
-	self.Hostname = ip
+	self.Hostname = hostname
 	self.Port = port
+	self.AutoPoll = autopoll
+	self.AutoCommit = autocommit
 	self.PendingCommands = 0
 	self.Subscriptions = {}
 	self.PSubscriptions = {}
 
-	if (not self:TryConnect(ip, port)) then
+	if (not self:TryConnect(hostname, port)) then
 		return self
 	end
 

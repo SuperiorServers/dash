@@ -1,5 +1,9 @@
 require 'tmysql4'
 
+if (not tmysql.Version) or (tmysql.Version < 4.1) then
+	error 'tmysql version is too old! Install 4.1 or later.'
+end
+
 mysql = setmetatable({
 	GetTable = setmetatable({}, {
 		__call = function(self)
@@ -59,12 +63,12 @@ function mysql.Connect(hostname, username, password, database, port, optional_so
 		return mysql.GetTable[tostring(db_obj)]
 	end
 
-	db_obj.Handle, db_obj.Error = tmysql.initialize(hostname, username, password, database, port, optional_socketpath, optional_clientflags, optional_connectcallback)
+	db_obj.Handle, db_obj.Error = tmysql.Connect(hostname, username, password, database, port, optional_socketpath, optional_clientflags, optional_connectcallback)
 
 	if db_obj.Error then
 		db_obj:Log(db_obj.Error)
 	elseif (db_obj.Handle == false) then
-		db_obj:Log('Connection failed!')
+		db_obj:Log('Connection failed with unknown error!')
 	else
 		mysql.GetTable[tostring(db_obj)] = db_obj
 

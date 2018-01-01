@@ -165,11 +165,11 @@ function NETVAR:_Construct()
 
 	if self.PlayerVar then
 		self._Write = function(self, ent, value)
-			net_WriteUInt(ent:EntIndex(), 7)
+			net_WriteUInt(ent:EntIndex(), 8)
 			WriteFunc(value)
 		end
 		self._Read = function(self)
-			return net_ReadUInt(7), ReadFunc()
+			return net_ReadUInt(8), ReadFunc()
 		end
 	elseif self.LocalPlayerVar then
 		self._Write = function(self, ent, value)
@@ -256,7 +256,7 @@ if (SERVER) then
 		if (index ~= 0) and (data[index] ~= nil) then -- For some reason this kept getting called on Entity(0), not sure why...
 			if ent:IsPlayer() then
 				net_Start('nw.PlayerRemoved')
-					net_WriteUInt(index, 7)
+					net_WriteUInt(index, 8)
 				net_Broadcast()
 			else
 				net_Start('nw.EntityRemoved')
@@ -305,7 +305,7 @@ if (SERVER) then
 		else
 			if self:IsPlayer() then
 				net_Start('nw.NilPlayerVar')
-				net_WriteUInt(index, 7)
+				net_WriteUInt(index, 8)
 			else
 				net_Start('nw.NilEntityVar')
 				net_WriteUInt(index, 12)
@@ -328,7 +328,7 @@ else
 	end)
 
 	net.Receive('nw.NilPlayerVar', function()
-		local index, id = net_ReadUInt(7), net_ReadUInt(bitcount)
+		local index, id = net_ReadUInt(8), net_ReadUInt(bitcount)
 		if data[index] and mappings[id] then
 			data[index][mappings[id].Name] = nil
 		end
@@ -339,6 +339,6 @@ else
 	end)
 
 	net.Receive('nw.PlayerRemoved', function()
-		data[net_ReadUInt(7)] = nil
+		data[net_ReadUInt(8)] = nil
 	end)
 end

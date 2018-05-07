@@ -15,7 +15,7 @@ debug.getregistry().Texture = TEXTURE
 local textures 	= {}
 local proxyurl 	= 'https://YOUR_SITE.COM/?url=%s&width=%i&height=%i&format=%s'
 
-if (not file.IsDir('texture', 'DATA')) then 
+if (not file.IsDir('texture', 'DATA')) then
 	file.CreateDir 'texture'
 end
 
@@ -23,8 +23,8 @@ function texture.Create(name)
 	local ret = setmetatable({
 		Name 	= name,
 		URL 	= '',
-		Width 	= 1024,
-		Height 	= 1024,
+		Width 	= 1000,
+		Height 	= 1000,
 		Busy 	= false,
 		Cache 	= true,
 		Proxy 	= true,
@@ -79,7 +79,7 @@ function TEXTURE:GetUID(reaccount)
 	end
 	return self.UID
 end
-	
+
 function TEXTURE:GetSize()
 	return self.Width, self.Height
 end
@@ -136,7 +136,7 @@ function TEXTURE:Download(url, onsuccess, onfailure)
 			if onsuccess then
 				onsuccess(self, self.IMaterial)
 			end
-			
+
 			self.Busy = false
 		end, function(error)
 
@@ -163,41 +163,55 @@ function TEXTURE:RenderManual(func, callback)
 			callback(self, self.IMaterial)
 		end
 	else
+		if (self.Width > 1000) then
+			self.Width = 1000
+			ErrorNoHalt 'Width is greater than 1000! Clamping...'
+		end
+
+		if (self.Height > 1000) then
+			self.Height = 1000
+			ErrorNoHalt 'Height is greater than 1000! Clamping...'
+		end
+
 		hook.Add('HUDPaint', 'texture.render' .. self:GetName(), function()
 			if self:IsBusy() then return end
-			
+
 			local w, h = self.Width, self.Height
 
 			local drawRT = GetRenderTarget('texture_rt', w, h, true)
-			local oldRT = render.GetRenderTarget()
 
-			render.SetRenderTarget(drawRT)
-				render.Clear(0, 0, 0, 0)
+			render.PushRenderTarget(drawRT, 0, 0, w, h)
+				render.OverrideAlphaWriteEnable(true, true)
+				surface.DisableClipping(true)
 				render.ClearDepth()
+				render.Clear(0, 0, 0, 0)
 
-				render.SetViewPort(0, 0, w, h) -- may need to tweak this all a bit later when I find use cases this doesn't work well for.
-					func(self, w, h)
-			
+					cam.Start2D()
+						func(self, w, h)
+					cam.End2D()
+
 					if self.Cache then
 						self.File = 'texture/' .. self:GetUID() .. '-render.png'
-						file.Write(self.File, render.Capture({ 
-							format = 'png', 
-							quality = 100, 
-							x = 0, 
-							y = 0, 
+						file.Write(self.File, render.Capture({
+							format = 'png',
+							quality = 100,
+							x = 0,
+							y = 0,
 							h = h,
 							w = w
 						}))
 					end
-				render.SetViewPort(0, 0, ScrW(), ScrH())
-			render.SetRenderTarget(oldRT)
+
+				surface.DisableClipping(false)
+				render.OverrideAlphaWriteEnable(false)
+			render.PopRenderTarget()
 
 			self.IMaterial = Material('data/' .. self.File)
 
 			if callback then
 				callback(self, self.IMaterial)
 			end
-			
+
 			hook.Remove('HUDPaint', 'texture.render' .. self:GetName())
 		end)
 	end
@@ -212,12 +226,10 @@ function TEXTURE:Render(func, callback)
 	end, callback)
 end
 
-
-
 /*
 Basic usage
 
-local logo = texture.Create()
+local logo = texture.Create('example')
 	:SetSize(570, 460)
 	:SetFormat('png')
 	:Download('https://i.imgur.com/TZcJ1CK.png')
@@ -232,7 +244,7 @@ local logo = texture.Create()
 	end)
 
 hook.Add('HUDPaint', 'awdawd', function()
-	if logo:GetMaterial() then 
+	if logo:GetMaterial() then
 		surface.SetDrawColor(255,255,255,255)
 		surface.SetMaterial(logo:GetMaterial())
 		surface.DrawTexturedRect(35, 35, 570, 460)

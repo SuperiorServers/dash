@@ -163,57 +163,41 @@ function TEXTURE:RenderManual(func, callback)
 			callback(self, self.IMaterial)
 		end
 	else
-		if (self.Width > 1000) then
-			self.Width = 1000
-			ErrorNoHalt 'Width is greater than 1000! Clamping...'
+		local w, h = self.Width, self.Height
+
+		local drawRT = GetRenderTarget(self:GetName(), w, h, true)
+
+		render.PushRenderTarget(drawRT, 0, 0, w, h)
+			render.OverrideAlphaWriteEnable(true, true)
+			surface.DisableClipping(true)
+			render.ClearDepth()
+			render.Clear(0, 0, 0, 0)
+
+				cam.Start2D()
+					func(self, w, h)
+				cam.End2D()
+
+				if self.Cache then
+					self.File = 'texture/' .. self:GetUID() .. '-render.png'
+					file.Write(self.File, render.Capture({
+						format = 'png',
+						quality = 100,
+						x = 0,
+						y = 0,
+						h = h,
+						w = w
+					}))
+				end
+
+			surface.DisableClipping(false)
+			render.OverrideAlphaWriteEnable(false)
+		render.PopRenderTarget()
+
+		self.IMaterial = Material('data/' .. self.File)
+
+		if callback then
+			callback(self, self.IMaterial)
 		end
-
-		if (self.Height > 1000) then
-			self.Height = 1000
-			ErrorNoHalt 'Height is greater than 1000! Clamping...'
-		end
-
-		hook.Add('HUDPaint', 'texture.render' .. self:GetName(), function()
-			if self:IsBusy() then return end
-
-			local w, h = self.Width, self.Height
-
-			local drawRT = GetRenderTarget('texture_rt', w, h, true)
-
-			render.PushRenderTarget(drawRT, 0, 0, w, h)
-				render.OverrideAlphaWriteEnable(true, true)
-				surface.DisableClipping(true)
-				render.ClearDepth()
-				render.Clear(0, 0, 0, 0)
-
-					cam.Start2D()
-						func(self, w, h)
-					cam.End2D()
-
-					if self.Cache then
-						self.File = 'texture/' .. self:GetUID() .. '-render.png'
-						file.Write(self.File, render.Capture({
-							format = 'png',
-							quality = 100,
-							x = 0,
-							y = 0,
-							h = h,
-							w = w
-						}))
-					end
-
-				surface.DisableClipping(false)
-				render.OverrideAlphaWriteEnable(false)
-			render.PopRenderTarget()
-
-			self.IMaterial = Material('data/' .. self.File)
-
-			if callback then
-				callback(self, self.IMaterial)
-			end
-
-			hook.Remove('HUDPaint', 'texture.render' .. self:GetName())
-		end)
 	end
 	return self
 end

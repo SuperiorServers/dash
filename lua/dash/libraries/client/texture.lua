@@ -17,6 +17,13 @@ local proxyurl 	= 'https://YOUR_SITE.COM/?url=%s&width=%i&height=%i&format=%s'
 
 if (not file.IsDir('texture', 'DATA')) then
 	file.CreateDir 'texture'
+else
+	local files = file.Find('texture/*', 'DATA')
+	if (#files > 1000) then
+		for k, v in ipairs(files) do
+			file.Delete('texture/' .. v)
+		end
+	end
 end
 
 function texture.Create(name)
@@ -155,7 +162,7 @@ end
 function TEXTURE:RenderManual(func, callback)
 	local cachefile = 'texture/' .. self:GetUID() .. '-render.png'
 
-	if file.Exists(cachefile, 'DATA') then
+	if self.Cache and file.Exists(cachefile, 'DATA') then
 		self.File = cachefile
 		self.IMaterial = Material('data/' .. self.File, 'smooth')
 
@@ -165,39 +172,46 @@ function TEXTURE:RenderManual(func, callback)
 	else
 		local w, h = self.Width, self.Height
 
-		local drawRT = GetRenderTarget(self:GetName(), w, h, true)
+		local hookId = 'texture.PostRender' .. self:GetUID()
+		hook.Add('PostRender', hookId, function()
+			hook.Remove('PostRender', hookId)
 
-		render.PushRenderTarget(drawRT, 0, 0, w, h)
-			render.OverrideAlphaWriteEnable(true, true)
-			surface.DisableClipping(true)
-			render.ClearDepth()
-			render.Clear(0, 0, 0, 0)
+			local drawRT = GetRenderTarget(self:GetName(), w, h, true)
 
-				cam.Start2D()
-					func(self, w, h)
-				cam.End2D()
+			render.PushRenderTarget(drawRT, 0, 0, w, h)
+				render.OverrideAlphaWriteEnable(true, true)
+				surface.DisableClipping(true)
+				render.ClearDepth()
+				render.Clear(0, 0, 0, 0)
 
-				if self.Cache then
-					self.File = 'texture/' .. self:GetUID() .. '-render.png'
-					file.Write(self.File, render.Capture({
-						format = 'png',
-						quality = 100,
-						x = 0,
-						y = 0,
-						h = h,
-						w = w
-					}))
-				end
+					cam.Start2D()
+						func(self, w, h)
+					cam.End2D()
 
-			surface.DisableClipping(false)
-			render.OverrideAlphaWriteEnable(false)
-		render.PopRenderTarget()
+					if self.Cache then
+						self.File = 'texture/' .. self:GetUID() .. '-render.png'
+						file.Write(self.File, render.Capture({
+							format = 'png',
+							quality = 100,
+							x = 0,
+							y = 0,
+							h = h,
+							w = w
+						}))
+					end
 
-		self.IMaterial = Material('data/' .. self.File)
+				surface.DisableClipping(false)
+				render.OverrideAlphaWriteEnable(false)
+			render.PopRenderTarget()
 
-		if callback then
-			callback(self, self.IMaterial)
-		end
+			if self.Cache then
+				self.IMaterial = Material('data/' .. self.File)
+			end
+
+			if callback then
+				callback(self, self.IMaterial)
+			end
+		end)
 	end
 	return self
 end
@@ -216,7 +230,7 @@ Basic usage
 local logo = texture.Create('example')
 	:SetSize(570, 460)
 	:SetFormat('png')
-	:Download('https://i.imgur.com/TZcJ1CK.png')
+	:Download('https://i.imgur.com/TZcJ1CK.png', print, print)
 	:Render(function(self, w, h)
 		draw.Box(0, 0, w, h, Color(0,255,0))
 

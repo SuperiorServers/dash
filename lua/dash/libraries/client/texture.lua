@@ -133,12 +133,17 @@ function TEXTURE:Download(url, onsuccess, onfailure)
 		http.Fetch(self.Proxy and string.format(proxyurl, url:URLEncode(), self.Width, self.Height, self.Format) or url, function(body, len, headers, code)
 			if (self.Cache) then
 				file.Write(self.File, body)
-			end
+				self.IMaterial = Material('data/' .. self.File, 'smooth')
+			else
+				local tempfile = 'texture/tmp_' .. os.time() .. '_' .. self:GetUID() .. '.png'
+				file.Write(tempfile, body)
 
-			local tempfile = 'texture/tmp_' .. os.time() .. '_' .. self:GetUID() .. '.png'
-			file.Write(tempfile, body)
-			self.IMaterial = Material('data/' .. tempfile, 'smooth')
-			file.Delete(tempfile)
+				self.IMaterial = Material('data/' .. tempfile, 'smooth')
+
+				timer.Simple(1, function()
+					file.Delete(tempfile)
+				end)
+			end
 
 			if onsuccess then
 				onsuccess(self, self.IMaterial)

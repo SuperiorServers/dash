@@ -68,6 +68,7 @@ end
 
 function REDIS_SUBSCRIBER:OnDisconnected()
 	if (not hook.Call('RedisSubscriberDisconnected', nil, self)) then
+		self:Log('Connection Lost.')
 		timer.Create('RedisSubscriberRetryConnect', 1, 0, function()
 			if (not IsValid(self)) or self:TryConnect(self.Hostname, self.Port) then
 				timer.Destroy('RedisSubscriberRetryConnect')

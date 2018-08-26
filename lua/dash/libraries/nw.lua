@@ -324,6 +324,7 @@ else
 		local index, id = net_ReadUInt(12), net_ReadUInt(bitcount)
 		if data[index] and mappings[id] then
 			data[index][mappings[id].Name] = nil
+			mappings[id]:_CallHook(index, nil)
 		end
 	end)
 
@@ -331,6 +332,7 @@ else
 		local index, id = net_ReadUInt(8), net_ReadUInt(bitcount)
 		if data[index] and mappings[id] then
 			data[index][mappings[id].Name] = nil
+			mappings[id]:_CallHook(index, nil)
 		end
 	end)
 

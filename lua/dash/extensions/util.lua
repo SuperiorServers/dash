@@ -41,6 +41,51 @@ function util.Tracer(vecStart, vecEnd, pEntity, iAttachment, flVelocity, bWhiz, 
 	end
 end
 
+
+function util.FindHullIntersection(tbl, tr)
+	local iDist = 1e12
+	tbl.output = nil
+	local vSrc = tbl.start
+	local vHullEnd = vSrc + (tr.HitPos - vSrc) * 2
+	tbl.endpos = vHullEnd
+	local tBounds = { tbl.mins, tbl.maxs }
+	local trTemp = util.TraceLine(tbl)
+
+	if (trTemp.Fraction ~= 1) then
+		table.CopyFromTo(trTemp, tr)
+		return tr
+	end
+
+	local trOutput
+
+	for i = 1, 2 do
+		for j = 1, 2 do
+			for k = 1, 2 do
+				tbl.endpos = Vector( vHullEnd.x + tBounds[i].x,
+					vHullEnd.y + tBounds[j].y,
+					vHullEnd.z + tBounds[k].z )
+
+				local trTemp = util.TraceLine(tbl)
+
+				if (trTemp.Fraction ~= 1) then
+					local iHitDistSqr = (trTemp.HitPos - vSrc):LengthSqr()
+
+					if (iHitDistSqr < iDist) then
+						trOutput = trTemp
+						iDist = iHitDistSqr
+					end
+				end
+			end
+		end
+	end
+
+	if (trOutput) then
+		table.CopyFromTo(trOutput, tr)
+	end
+
+	return tr
+end
+
 --[[---------------------------------------------------------
 	Find an empty Vector
 -----------------------------------------------------------]]

@@ -12,7 +12,7 @@ function geoip.Get(ip, cback, failure)
 	if result_cache[ip] then
 		cback(result_cache[ip])
 	else
-		http_fetch('http://geoip.nekudo.com/api/' .. ip, function(b)
+		http_fetch('https://extreme-ip-lookup.com/json/' .. ip, function(b)
 			if (b == '404 page not found') then
 				error('GeoIP: Failed to lookup ip: ' .. ip)
 			else
@@ -22,7 +22,7 @@ function geoip.Get(ip, cback, failure)
 				cback(res)
 			end
 		end, function()
-			if (failures <= 5) then 
+			if (failures <= 5) then
 				timer.Simple(5, function()
 					failures = failures + 1
 					geoip.Get(ip, cback, failure)

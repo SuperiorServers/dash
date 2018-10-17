@@ -132,4 +132,3 @@ function net.Ping(msg, recipients)
 	Start(msg)
 	Send(recipients)
 end
-

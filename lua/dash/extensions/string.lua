@@ -28,7 +28,7 @@ function string:IsSteamID64()
 end
 
 function string:HtmlSafe()
-    return self:gsub('&', '&amp;'):gsub('<', '&lt;'):gsub('>', '&gt;')
+	return self:gsub('&', '&amp;'):gsub('<', '&lt;'):gsub('>', '&gt;')
 end
 
 local formathex = '%%%02X'
@@ -42,6 +42,14 @@ function string:URLDecode()
 	return self:gsub('+', ' '):gsub('%%(%x%x)', function(hex)
 		return string.char(tonumber(hex, 16))
 	end)
+end
+
+function string:ParseURL()
+	local ans = {}
+	for k, v in self:gmatch('([^&=?]-)=([^&=?]+)' ) do
+		ans[k] = v:URLDecode()
+	end
+	return ans
 end
 
 function string.ExplodeQuotes(str) -- Re-do this one of these days

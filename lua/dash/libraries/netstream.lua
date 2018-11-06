@@ -3,8 +3,8 @@ local txnid = 0
 local BLOCK_SIZE = 2^16-2^10
 local BLODK_SIZE_m1 = BLOCK_SIZE - 1
 
-if SERVER then 
-	util.AddNetworkString('pns')
+if SERVER then
+	util.AddNetworkString('net.Stream')
 end
 
 function net.WriteStream(data, targs)
@@ -27,25 +27,27 @@ function net.WriteStream(data, targs)
 		-- compression
 		block = util.Compress(block)
 
-		if block then
+		if block and (block ~= '') then
 			local size = block:len()
-			net.Start('pns')
+			net.Start('net.Stream')
 				net.WriteUInt(txnid, 16)
 				net.WriteUInt(size, 16)
 				net.WriteData(block, size)
 			if SERVER then
-			net.Send(targs)
+				net.Send(targs)
 			else
-			net.SendToServer()
+				net.SendToServer()
 			end
+
+			timer.Simple(0.1, send)
 		end
-		timer.Simple(0.1, send)
+
 	end
 
 	-- write txnid and chunks to be expected
 	net.WriteUInt(txnid, 16)
 	net.WriteUInt(math.ceil(data:len() / BLOCK_SIZE), 16)
-	
+
 	timer.Simple(0.1, send)
 end
 
@@ -61,10 +63,11 @@ if SERVER then
 		if not buckets[src] then buckets[src] = {} end
 		buckets[src][net.ReadUInt(16)] = {len=net.ReadUInt(16), callback=callback}
 	end
-	net.Receive('pns', function(_,pl)
+
+	net.Receive('net.Stream', function(_,pl)
 		local txnid = net.ReadUInt(16)
 		if not buckets[pl] or not buckets[pl][txnid] then
-			print('could not receive stream from client. player bucket does not exist or txnid invalid')
+			error('could not receive stream from client. player bucket does not exist or txnid invalid')
 		end
 
 		local bucket = buckets[pl][txnid]
@@ -83,18 +86,17 @@ if SERVER then
 		end
 	end)
 else
-	
 	function net.ReadStream(callback)
 		if not callback then
 			error('callback must be provided for stream read completion')
 		end
 		buckets[net.ReadUInt(16)] = {len=net.ReadUInt(16), callback=callback}
 	end
-	
-	net.Receive('pns', function(_)
+
+	net.Receive('net.Stream', function(_)
 		local txnid = net.ReadUInt(16)
 		if not buckets[txnid] then
-			print('could not receive stream from server. txnid invalid.')
+			error('could not receive stream from server. txnid invalid.')
 		end
 
 		local bucket = buckets[txnid]

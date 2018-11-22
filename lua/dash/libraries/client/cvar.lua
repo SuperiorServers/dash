@@ -20,6 +20,8 @@ debug.getregistry().Cvar = CVAR
 
 local data_directory = 'cvar'
 local staged_cvars = {}
+local cvars_ordered = {}
+
 local function load()
 	if (not file.IsDir(data_directory, 'DATA')) then
 		file.CreateDir(data_directory)
@@ -40,14 +42,21 @@ end
 
 function cvar.Register(name)
 	if (not cvar.GetTable[name]) then
-		cvar.GetTable[name] = staged_cvars[name] or setmetatable({
+		local obj = staged_cvars[name] or setmetatable({
 			Name = name,
 			ID = hash.MD5(name),
 			Metadata = {}
 		}, CVAR)
+
+		cvar.GetTable[name] = obj
+		table.insert(cvars_ordered, obj)
 		staged_cvars[name] = nil
 	end
 	return cvar.GetTable[name]
+end
+
+function cvar.GetOrderedTable()
+	return cvars_ordered
 end
 
 function cvar.Get(name)

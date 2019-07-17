@@ -39,14 +39,14 @@ end
 
 function net.WriteEntity(ent)
 	if IsValid(ent) then
-		WriteUInt(ent:EntIndex(), 12)
+		WriteUInt(ent:EntIndex(), 13)
 	else
-		WriteUInt(0, 12)
+		WriteUInt(0, 13)
 	end
 end
 
 function net.ReadEntity()
-	local i = ReadUInt(12)
+	local i = ReadUInt(13)
 	if (not i) then return end
 	return Entity(i)
 end

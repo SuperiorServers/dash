@@ -7,3 +7,6 @@
 [submodule "lua/dash/submodules/spon"]
 	path = lua/dash/submodules/spon
 	url = https://github.com/thelastpenguin/sPON
+[submodule "lua/dash/submodules/lua_aes"]
+	path = lua/dash/submodules/lua_aes
+	url = https://github.com/TylerRHoyer/Lua_AES

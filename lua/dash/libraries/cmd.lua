@@ -80,7 +80,6 @@ function cmd.Parse(caller, cmdobj, argstring)
 			return false
 		elseif (args[1] ~= nil) then
 			local succ, value, used = params[v.Enum].Parse(caller, cmdobj, args[1], args, k)
-
 			if (succ == false) then
 				hook.Call('cmd.OnCommandError', nil, caller, cmdobj, value, used)
 				return false
@@ -91,7 +90,7 @@ function cmd.Parse(caller, cmdobj, argstring)
 			end
 
 			for i = 1, (used or 1) do
-				table.remove(args, i)
+				table.remove(args, 1)
 			end
 
 			parsed_args[#parsed_args + 1] = value
@@ -99,7 +98,6 @@ function cmd.Parse(caller, cmdobj, argstring)
 	end
 	return true, parsed_args
 end
-
 
 -- Defualt parsers
 local function playercomplete(cmdobj, arg, args, step)
@@ -164,7 +162,7 @@ end, playercomplete)
 
 cmd.AddParam('STRING', 'String', function(caller, cmdobj, arg, args, step)
 	local results = ''
-	local c = 1
+	local c = 0
 	for i = 1, ((#args + step) - #cmdobj:GetParams()) do
 		results = results .. ((i == 1) and '' or ' ') .. args[i]
 		c = c + 1

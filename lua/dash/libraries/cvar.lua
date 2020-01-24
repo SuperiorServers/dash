@@ -179,7 +179,7 @@ end
 -- prevent other servers from messing with important cvars, could just store a hash or last modified time serverside but that's less cool and dynamic
 -- encrypted vars won't be availible right away
 function CVAR:SetEncrypted()
-	if self.Encrypted then return end -- lua refresh
+	if self.Encrypted then return self end -- lua refresh
 
 	self.Encrypted = true
 

@@ -156,6 +156,12 @@ function CVAR:AddCallback(callback)
 	return self
 end
 
+function CVAR:AddInitCallback(callback) -- for encrypted vars
+	hook.Add('cvar.Init.' .. self.Name, callback)
+	return self
+end
+
+
 function CVAR:Validate(value)
 	return true
 end
@@ -196,6 +202,8 @@ function CVAR:SetEncrypted()
 			net.WriteString(self.Name)
 		net.SendToServer()
 	end)
+
+	return self
 end
 
 function CVAR:Reset()
@@ -209,6 +217,7 @@ function CVAR:Save()
 		File = self.File,
 		Value = self.Value,
 		Metadata = self.Metadata,
+		Encrypted = self.Encrypted
 	}
 
 	file.Write(self.File, self.Encrypted and encodeEncryptedVar(self.Key, toSave) or encodeVar(toSave))
@@ -249,6 +258,8 @@ net('cvar.RequestEncryptionKey', function()
 
 		table.insert(cvars_ordered, obj)
 		cvar.GetTable[obj.Name] = obj
+
+		hook.Call('cvar.Init.' .. obj.Name, nil, obj)
 	end
 end)
 

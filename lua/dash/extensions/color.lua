@@ -34,7 +34,7 @@ function COLOR:ToHex()
 end
 
 function COLOR:SetEncodedRGB(num)
-	self.r, self.g, self.b = bit_band(bit_rshift(num, 16), 0xFF), bit_band(num, 0xFF), bit_band(bit_rshift(num, 8), 0xFF)
+	self.r, self.g, self.b = bit_band(bit_rshift(num, 16), 0xFF), bit_band(bit_rshift(num, 8), 0xFF), bit_band(num, 0xFF)
 end
 
 function COLOR:ToEncodedRGB()

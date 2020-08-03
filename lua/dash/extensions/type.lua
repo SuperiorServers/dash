@@ -13,6 +13,7 @@ local WEAPON 	= FindMetaTable 'Weapon'
 local NPC 		= FindMetaTable 'NPC'
 local NEXTBOT 	= FindMetaTable 'NextBot'
 local VEHICLE 	= FindMetaTable 'Vehicle'
+local CSENTITY	= FindMetaTable 'CSEnt'
 
 local entmts = {
 	[ENTITY] 	= true,
@@ -25,6 +26,8 @@ local entmts = {
 
 if (SERVER) then
 	entmts[NEXTBOT] = true
+else
+    entmts[CSENTITY] = true
 end
 
 function isstring(v)

@@ -45,6 +45,7 @@ local select 		= select
 local isfunction 	= isfunction
 local string_format = string.format
 local string_gsub 	= string.gsub
+local string_rep	= string.rep
 
 local color_prefix, color_text = Color(185,0,255), Color(250,250,250)
 
@@ -116,10 +117,13 @@ local retry_errors = {
 	[' MySQL server has gone away'] = true,
 }
 
-local function handlequery(db, query, results, cback)
+local function handlequery(db, query, results, cback, pstmtValues)
 	if (results[1].error ~= nil) then
-		db:Log(results[1].error)
+		db:Log("[" .. results[1].errorid .. "] " .. results[1].error)
 		db:Log(query)
+		if (pstmtValues) then
+			db:Log(pstmtValues)
+		end
 		if retry_errors[results[1].error] then
 			if query_queue[query] then
 				query_queue[query].Trys = query_queue[query].Trys + 1
@@ -170,30 +174,64 @@ function DATABASE:QuerySync(query, ...)
 end
 
 function DATABASE:Prepare(query)
-	local _, varcount 	= string_gsub(query, '?', '?')
 	local dbhandle 		= self.Handle
 	local db 			= self
 	local values		= {}
 
-	query = string.Replace(query, '?', '%s')
+	if (tmysql.Version >= 4.3) then -- Support native prepared statements
+		local statement, err = dbhandle:Prepare(query)
 
-	return setmetatable({
-		Handle = self.Handle,
-		Query = query,
-		Count = varcount,
-		Values = values,
-		Run = function(self, ...)
-			local cback = select(varcount + 1, ...)
-			for i = 1, varcount do
-				local value = select(i, ...)
-				values[i] = (value ~= nil) and (quote .. db:Escape(value) .. quote) or 'NULL'
-			end
-			local query = string_format(query, unpack(values))
-			dbhandle:Query(query, function(results)
-				handlequery(db, query, results, cback)
-			end)
-		end,
-	}, STATEMENT)
+		if (statement == nil) then
+			self:Log("Error while preparing statement")
+			self:Log(err)
+			return
+		end
+
+		local varcount = statement:GetArgCount()
+		local vals = "Values: " .. string_rep("%s\t", varcount)
+
+		return setmetatable({
+			Handle = self.Handle,
+			Query = query,
+			Count = varcount,
+			Statement = statement,
+			Run = function(self, ...)
+				local cback = select(varcount + 1, ...)
+				for i = 1, varcount do
+					local value = select(i, ...)
+					values[i] = value
+				end
+
+				local vals = string_format(vals, unpack(values, 1, varcount))
+
+				values[varcount + 1] = function(results)
+					handlequery(db, query, results, cback, vals)
+				end
+
+				statement:Run(unpack(values, 1, varcount + 2))
+			end,
+		}, STATEMENT)
+	else -- Fake news
+		local _, varcount 	= string_gsub(query, '?', '?')
+		query = string.Replace(query, '?', '%s')
+		return setmetatable({
+			Handle = self.Handle,
+			Query = query,
+			Count = varcount,
+			Values = values,
+			Run = function(self, ...)
+				local cback = select(varcount + 1, ...)
+				for i = 1, varcount do
+					local value = select(i, ...)
+					values[i] = (value ~= nil) and (quote .. db:Escape(value) .. quote) or 'NULL'
+				end
+				local query = string_format(query, unpack(values))
+				dbhandle:Query(query, function(results)
+					handlequery(db, query, results, cback)
+				end)
+			end,
+		}, STATEMENT)
+	end
 end
 
 

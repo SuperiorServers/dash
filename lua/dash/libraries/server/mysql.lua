@@ -61,7 +61,7 @@ function mysql.Connect(hostname, username, password, database, port, optional_so
 	}, DATABASE)
 
 	local cached = mysql.GetTable[tostring(db_obj)]
-	if cached then
+	if cached and cached.Handle:IsValid() then
 		cached:Log('Recycled connection.')
 		return cached
 	end

@@ -95,9 +95,10 @@ function nw.Register(var) -- You must always call this on both the client and se
 				data[index] = {}
 			end
 
+			local oldValue = data[index][var]
 			data[index][var] = value
 
-			t:_CallHook(index, value)
+			t:_CallHook(index, value, oldValue)
 		end)
 	end
 
@@ -156,12 +157,12 @@ function NETVAR:_Send(ent, value, recipients)
 	self:SendFunc(ent, value, recipients)
 end
 
-function NETVAR:_CallHook(index, value)
+function NETVAR:_CallHook(index, value, oldValue)
 	if self.Hook then
 		if (index ~= 0) then
-			hook.Call(self.Hook, GAMEMODE, Entity(index), value)
+			hook.Call(self.Hook, GAMEMODE, Entity(index), value, oldValue)
 		else
-			hook.Call(self.Hook, GAMEMODE, value)
+			hook.Call(self.Hook, GAMEMODE, value, oldValue)
 		end
 	end
 end
@@ -329,20 +330,20 @@ else
 		net_Send()
 	end)
 
-	net.Receive('nw.NilEntityVar', function()
-		local index, id = net_ReadUInt(13), net_ReadUInt(bitcount)
+	local function nwNilVar(index, id)
 		if data[index] and mappings[id] then
+			local oldValue = data[index][mappings[id].Name]
 			data[index][mappings[id].Name] = nil
-			mappings[id]:_CallHook(index, nil)
+			mappings[id]:_CallHook(index, nil, oldValue)
 		end
+	end
+
+	net.Receive('nw.NilEntityVar', function()
+		nwNilVar(net_ReadUInt(13), net_ReadUInt(bitcount))
 	end)
 
 	net.Receive('nw.NilPlayerVar', function()
-		local index, id = net_ReadUInt(8), net_ReadUInt(bitcount)
-		if data[index] and mappings[id] then
-			data[index][mappings[id].Name] = nil
-			mappings[id]:_CallHook(index, nil)
-		end
+		nwNilVar(net_ReadUInt(8), net_ReadUInt(bitcount))
 	end)
 
 	net.Receive('nw.EntityRemoved', function()

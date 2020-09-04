@@ -65,3 +65,18 @@ function table.ConcatKeys(tab, concatenator)
 
 	return str
 end
+
+function table.RemoveMulti(tab, index, length)
+	if (!length) then
+		length = index
+		index = 1
+	end
+
+	local ret = {}
+
+	for i = 1, length do
+		ret[i] = table.remove(tab, index)
+	end
+	
+	return ret
+end

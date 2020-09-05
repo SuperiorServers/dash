@@ -1,6 +1,6 @@
 require 'term'
 
-cmd = setmetatable({
+cmd = cmd or setmetatable({
 	GetTable = setmetatable({}, {
 		__call = function(self)
 			return self
@@ -30,6 +30,8 @@ cmd = setmetatable({
 		mo 	= 2592000,
 		y 	= 31536000
 	},
+
+	concommands = {}
 }, {
 	__call = function(self, name, callback)
 		return self.Add(name, callback)
@@ -45,7 +47,6 @@ COMMAND.__index 			= COMMAND
 COMMAND.__concat 			= COMMAND.__tostring
 debug.getregistry().Command	= COMMAND
 
-local concommands = {}
 local params = {}
 
 if (SERVER) then
@@ -57,6 +58,19 @@ term.Add(cmd.ERROR_INVALID_PLAYER, 'Could not find player: #')
 term.Add(cmd.ERROR_INVALID_NUMBER, 'Invalid number: #')
 term.Add(cmd.ERROR_INVALID_TIME, 'Invalid time: #')
 term.Add(cmd.ERROR_COMMAND_COOLDOWN, 'You need to wait # seconds to run "#" again!')
+
+-- Arg split
+local function splitArgs(cmdobj, args)
+	args = args:Trim()
+
+	if (args:len() == 0) then return {} end
+
+	if (cmdobj.SplitQuotes) then
+		return string.ExplodeQuotes(args)
+	else
+		return string.Explode(" ", args)
+	end
+end
 
 -- Parsing
 function cmd.AddParam(name, nicename, parse, autocomplete)
@@ -71,10 +85,11 @@ function cmd.AddParam(name, nicename, parse, autocomplete)
 end
 
 function cmd.Parse(caller, cmdobj, argstring)
-	local args = string.ExplodeQuotes(argstring) -- todo, recode this function
+	local cmdParams = cmdobj:GetParams()
+	local args = splitArgs(cmdobj, argstring)
 
 	local parsed_args = {}
-	for k, v in ipairs(cmdobj:GetParams()) do
+	for k, v in ipairs(cmdParams) do
 		if (args[1] == nil) and (not v.Opts[cmd.OPT_OPTIONAL]) then
 			hook.Call('cmd.OnCommandError', nil, caller, cmdobj, cmd.ERROR_MISSING_PARAM, {k, params[v.Enum].NiceName})
 			return false
@@ -98,7 +113,6 @@ function cmd.Parse(caller, cmdobj, argstring)
 	end
 	return true, parsed_args
 end
-
 
 -- Defualt parsers
 local function playercomplete(cmdobj, arg, args, step)
@@ -264,6 +278,7 @@ function cmd.Add(name, callback)
 		Name  		= name:lower():gsub(' ', ''),
 		NiceName 	= name,
 		Cooldown 	= 0.25,
+		SplitQuotes	= false,
 		Params		= {},
 		CanRun 		= function() end,
 		Callback	= callback or function() end
@@ -350,8 +365,8 @@ end
 function COMMAND:SetConCommand(name)
 	name = name:lower()
 	self.ConCommand = name
-	if (not concommands[name]) then
-		concommands[name] = true
+	if (not cmd.concommands[name]) then
+		cmd.concommands[name] = true
 
 		local runcommand
 		if (SERVER) then
@@ -369,7 +384,7 @@ function COMMAND:SetConCommand(name)
 
 		concommand.Add(name, runcommand, function(command, str)
 			local ret 		= {}
-			local args 		= string.ExplodeQuotes(str)
+			local args 		= splitArgs(self, str)
 			local argcount 	= #args
 			local shownext 	= (str:sub(str:len(), str:len() + 1) == ' ') and (argcount >= 1)
 
@@ -416,6 +431,11 @@ function COMMAND:SetConCommand(name)
 end
 
 function COMMAND:AddParam(param, ...) -- improve this
+	-- Convert to quote splitting if we're following up a string with another argument
+	if (#self.Params > 0 and self.Params[#self.Params].Enum == cmd.STRING) then
+		self.SplitQuotes = true
+	end
+
 	local t = {
 		Enum = param,
 		Opts = {}
@@ -504,7 +524,7 @@ else
 	hook.Add('PlayerSay', 'cmd.PlayerSay', function(pl, text)
 		local text = text:Trim()
 		if (text[1] == '!') or (text[1] == '/') then
-			local args = string.ExplodeQuotes(text)
+			local args = string.Explode(" ", text)
 			local command = args[1]:sub(2)
 			table.remove(args, 1)
 			cmd.Run(pl, command, args)

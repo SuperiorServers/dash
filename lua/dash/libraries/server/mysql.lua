@@ -18,7 +18,7 @@ mysql = setmetatable({
 
 local DATABASE = {
 	__tostring = function(self)
-		return self.Database .. '@' .. self.Hostname .. ':' ..  self.Port
+		return self.Username .. ":" .. self.Database .. '@' .. self.Hostname .. ':' ..  self.Port
 	end
 }
 DATABASE.__concat 	= DATABASE.__tostring

@@ -68,7 +68,7 @@ function REDIS_CLIENT:OnDisconnected()
 		local id = tostring(self)
 		timer.Create('RedisClientRetryConnect' .. id, 1, 0, function()
 			if (not IsValid(self)) or self:TryConnect(self.Hostname, self.Port, self.Password, self.Database) then
-				timer.Destroy('RedisClientRetryConnect', id)
+				timer.Destroy('RedisClientRetryConnect' .. id)
 			end
 		end)
 	end

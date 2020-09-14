@@ -39,6 +39,10 @@ function redis.ConnectSubscriber(hostname, port, autopoll, autocommit) -- no aut
 	self.Subscriptions = {}
 	self.PSubscriptions = {}
 
+	-- Module 1.1.0 and later caches references to these for less lookups
+	self.OnMessage = REDIS_SUBSCRIBER.OnMessage
+	self.OnDisconnected = REDIS_SUBSCRIBER.OnDisconnected
+
 	if (not self:TryConnect(hostname, port)) then
 		return self
 	end
@@ -62,13 +66,17 @@ end
 
 
 -- Internal
-function REDIS_SUBSCRIBER:OnMessage(channel, message) -- No point in doing our own hook system
-	hook.Call('RedisSubscriberMessage', nil, self, channel, message)
+function REDIS_SUBSCRIBER:OnMessage(channel, message)
+	local sub = self.Subscriptions[channel] or self.PSubscriptions[channel]
+	if (!sub) then return end
+
+	sub.Callback(self, message)
 end
 
 function REDIS_SUBSCRIBER:OnDisconnected()
+	self:Log('Connection Lost.')
+
 	if (not hook.Call('RedisSubscriberDisconnected', nil, self)) then
-		self:Log('Connection Lost.')
 		local id = tostring(self)
 		timer.Create('RedisSubscriberRetryConnect' .. id, 1, 0, function()
 			if (not IsValid(self)) or self:TryConnect(self.Hostname, self.Port) then
@@ -114,53 +122,51 @@ function REDIS_SUBSCRIBER:Commit()
 end
 
 local subscribe = REDIS_SUBSCRIBER.Subscribe
-function REDIS_SUBSCRIBER:Subscribe(channel, callback, onmessage)
-	if onmessage then
-		hook.Add('RedisSubscriberMessage', channel, function(db, _channel, message)
-			if (db == self) and (_channel == channel) then
-				return onmessage(self, message)
-			end
-		end)
+function REDIS_SUBSCRIBER:Subscribe(channel, callback, onmessage) -- Redundant arguments, we only need channel and callback. Keeping it for backwards compat
+	callback = callback or onmessage
+
+	if (!callback) then
+		self:Log("Calling Subscribe without a callback - nothing will happen!")
+		return
 	end
+
 	self.Subscriptions[channel] = {
 		Channel = channel,
-		Callback = callback,
-		OnMessage = onmessage
+		Callback = callback
 	}
+
 	self.PendingCommands = self.PendingCommands + 1
-	return subscribe(self, channel, callback)
+	return subscribe(self, channel)
 end
 
 local unsubscribe = REDIS_SUBSCRIBER.Unsubscribe
-function REDIS_SUBSCRIBER:Unsubscribe(channel, callback)
-	hook.Remove('RedisSubscriberMessage', channel)
+function REDIS_SUBSCRIBER:Unsubscribe(channel)
 	self.Subscriptions[channel] = nil
 	self.PendingCommands = self.PendingCommands + 1
-	return unsubscribe(self, channel, callback)
+	return unsubscribe(self, channel)
 end
 
 local psubscribe = REDIS_SUBSCRIBER.PSubscribe
-function REDIS_SUBSCRIBER:PSubscribe(channel, callback, onmessage)
-	if onmessage then
-		hook.Add('RedisPSubscriberMessage', channel, function(db, _channel, message)
-			if (db == self) and (_channel == channel) then
-				return onmessage(self, message)
-			end
-		end)
+function REDIS_SUBSCRIBER:PSubscribe(channel, callback, onmessage) -- Redundant arguments, we only need channel and callback. Keeping it for backwards compat
+	callback = callback or onmessage
+
+	if (!callback) then
+		self:Log("Calling PSubscribe without a callback - nothing will happen!")
+		return
 	end
+
 	self.PSubscriptions[channel] = {
 		Channel = channel,
-		Callback = callback,
-		OnMessage = onmessage
+		Callback = callback
 	}
+
 	self.PendingCommands = self.PendingCommands + 1
 	return psubscribe(self, channel, callback)
 end
 
 local punsubscribe = REDIS_SUBSCRIBER.PUnsubscribe
-function REDIS_SUBSCRIBER:PUnsubscribe(channel, callback)
-	hook.Remove('RedisPSubscriberMessage', channel)
+function REDIS_SUBSCRIBER:PUnsubscribe(channel)
 	self.PSubscriptions[channel] = nil
 	self.PendingCommands = self.PendingCommands + 1
-	return punsubscribe(self, channel, callback)
+	return punsubscribe(self, channel)
 end

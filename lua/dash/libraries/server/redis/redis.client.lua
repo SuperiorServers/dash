@@ -39,6 +39,9 @@ function redis.ConnectClient(hostname, port, password, database, autopoll, autoc
 	self.Database = database or 0
 	self.PendingCommands = 0
 
+	-- Module 1.1.0 and later caches references to this, less lookups = faster
+	self.OnDisconnected = REDIS_CLIENT.OnDisconnected
+
 	if (not self:TryConnect(hostname, port, password, database)) then
 		return self
 	end
@@ -63,8 +66,9 @@ end
 
 -- Internal
 function REDIS_CLIENT:OnDisconnected()
+	self:Log('Connection Lost.')
+
 	if (not hook.Call('RedisClientDisconnected', nil, self)) then
-		self:Log('Connection Lost.')
 		local id = tostring(self)
 		timer.Create('RedisClientRetryConnect' .. id, 1, 0, function()
 			if (not IsValid(self)) or self:TryConnect(self.Hostname, self.Port, self.Password, self.Database) then

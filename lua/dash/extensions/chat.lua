@@ -15,8 +15,6 @@ local ents_FindInSphere = ents.FindInSphere
 function chat.Register(name)
 	local t = {
 		NetworkString = 'chat_' .. name,
-		_Write = net.WriteType,
-		_Read = net.ReadType,
 		SendFunc = net.Broadcast,
 	}
 
@@ -38,11 +36,19 @@ function chat.Register(name)
 	return setmetatable(t, CHAT)
 end
 
-function chat.Send(name, ...)
+local function send(name, ...)
 	local chat_obj = chats[name]
 	net_Start(chat_obj.NetworkString)
 		chat_obj.WriteFunc(...)
 	chat_obj.SendFunc(...)
+end
+
+function chat.Send(name, ...)
+	local args = {...}
+
+	hook.Call('chat.Parse', nil, args)
+
+	send(name, unpack(args))
 end
 
 function CHAT:Write(func)

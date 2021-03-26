@@ -35,8 +35,8 @@ function texture.Create(name)
 		Busy 	= false,
 		Cache 	= true,
 		Proxy 	= true,
-		Smooth 	= true,
-		Format 	= 'jpg'
+		Format 	= 'jpg',
+		PngParameters = 'smooth'
 	}, TEXTURE)
 	textures[name] = ret
 	return ret
@@ -66,6 +66,10 @@ function TEXTURE:SetFormat(format) -- valid formats are whatever your webserver 
 	return self
 end
 
+function TEXTURE:SetPngParameters(params)
+	self.PngParameters = params
+end
+
 function TEXTURE:EnableCache(enable)
 	self.Cache = enable
 	return self
@@ -73,11 +77,6 @@ end
 
 function TEXTURE:EnableProxy(enable)
 	self.Proxy = enable
-	return self
-end
-
-function TEXTURE:EnableSmooth(enable)
-	self.Smooth = enable
 	return self
 end
 
@@ -122,7 +121,6 @@ function TEXTURE:IsBusy()
 end
 
 function TEXTURE:Download(url, onsuccess, onfailure)
-	local params = self.Smooth and 'smooth'
 	if (self.Name == nil) then
 		self.Name = 'Web Material: ' .. url
 	end
@@ -130,7 +128,7 @@ function TEXTURE:Download(url, onsuccess, onfailure)
 	self.File = 'texture/' .. self:GetUID() .. '.png'
 
 	if self.Cache and file.Exists(self.File, 'DATA') then
-		self.IMaterial = Material('data/' .. self.File, params)
+		self.IMaterial = Material('data/' .. self.File, self.PngParameters)
 		if onsuccess then
 			onsuccess(self, self.IMaterial)
 		end
@@ -140,12 +138,12 @@ function TEXTURE:Download(url, onsuccess, onfailure)
 		http.Fetch(self.Proxy and string.format(proxyurl, url:URLEncode(), self.Width, self.Height, self.Format) or url, function(body, len, headers, code)
 			if (self.Cache) then
 				file.Write(self.File, body)
-				self.IMaterial = Material('data/' .. self.File, params)
+				self.IMaterial = Material('data/' .. self.File, self.PngParameters)
 			else
 				local tempfile = 'texture/tmp_' .. os.time() .. '_' .. self:GetUID() .. '.png'
 				file.Write(tempfile, body)
 
-				self.IMaterial = Material('data/' .. tempfile, params)
+				self.IMaterial = Material('data/' .. tempfile, self.PngParameters)
 
 				timer.Simple(1, function()
 					file.Delete(tempfile)
@@ -176,7 +174,7 @@ function TEXTURE:RenderManual(func, callback)
 
 	if self.Cache and file.Exists(cachefile, 'DATA') then
 		self.File = cachefile
-		self.IMaterial = Material('data/' .. self.File, self.Smooth and 'smooth')
+		self.IMaterial = Material('data/' .. self.File, self.PngParameters)
 
 		if callback then
 			callback(self, self.IMaterial)

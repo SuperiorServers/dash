@@ -182,7 +182,7 @@ cmd.AddParam('STRING', 'String', function(caller, cmdobj, arg, args, step)
 		results = results .. ((i == 1) and '' or ' ') .. args[i]
 		c = c + 1
 	end
-	return true, results:sub(1, 126), c
+	return true, results, c
 end, function(cmdobj, arg, args, step)
 	local results = ''
 	local c = 1
@@ -313,6 +313,10 @@ if (SERVER) then
 					end
 					break
 				end
+			end
+
+			for k, v in ipairs(args) do
+				args[k] = v:sub(1, 126)
 			end
 
 			if (hook.Call('cmd.CanRunCommand', nil, pl, cmdobj, args) == false) or (cmdobj:CanRun(pl) == false) then return end

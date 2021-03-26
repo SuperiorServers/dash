@@ -182,7 +182,7 @@ cmd.AddParam('STRING', 'String', function(caller, cmdobj, arg, args, step)
 		results = results .. ((i == 1) and '' or ' ') .. args[i]
 		c = c + 1
 	end
-	return true, results, c
+	return true, results:sub(1, 126), c
 end, function(cmdobj, arg, args, step)
 	local results = ''
 	local c = 1

@@ -36,19 +36,11 @@ function chat.Register(name)
 	return setmetatable(t, CHAT)
 end
 
-local function send(name, ...)
+function chat.Send(name, ...)
 	local chat_obj = chats[name]
 	net_Start(chat_obj.NetworkString)
 		chat_obj.WriteFunc(...)
 	chat_obj.SendFunc(...)
-end
-
-function chat.Send(name, ...)
-	local args = {...}
-
-	hook.Call('chat.Parse', nil, args)
-
-	send(name, unpack(args))
 end
 
 function CHAT:Write(func)

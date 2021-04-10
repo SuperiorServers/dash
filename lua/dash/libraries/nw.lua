@@ -146,6 +146,19 @@ function NETVAR:SetNoSync()
 	return self:_Construct()
 end
 
+function NETVAR:Accessor(name)
+	name = name or self.Name
+	if SERVER then
+		ENTITY["Set" .. name] = function(ent, value)
+			ent:SetNetVar(self.Name, value)
+		end
+	end
+	ENTITY["Get" .. name] = function(ent)
+		return ent:GetNetVar(self.Name)
+	end
+	return self
+end
+
 function NETVAR:SetHook(name)
 	self.Hook = name
 	return self

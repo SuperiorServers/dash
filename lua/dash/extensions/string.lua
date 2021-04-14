@@ -6,6 +6,10 @@ function string.Random(chars)
 	return str
 end
 
+function string:IsAlphaNumeric()
+	return (not self:match('%W'))
+end
+
 function string:StartsWith(str)
 	return (self:sub(1, str:len()) == str)
 end

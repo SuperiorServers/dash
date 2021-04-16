@@ -175,6 +175,16 @@ cmd.AddParam('PLAYER_ENTITY_MULTI', 'Players/SteamIDs', function(caller, cmdobj,
 	return true, results, #results
 end, playercomplete)
 
+cmd.AddParam('WORD', 'Single Word', function(caller, cmdobj, arg, args, step)
+	if not arg or arg == '' then
+		return false, cmd.ERROR_INVALID_COMMAND, {arg}
+	else
+		return true, arg
+	end
+end, function(cmdobj, arg, args, step)
+	return {'<Word>'}
+end)
+
 cmd.AddParam('STRING', 'String', function(caller, cmdobj, arg, args, step)
 	local results = ''
 	local c = 0

@@ -191,3 +191,23 @@ function string:MaxCharacters(num, withellipses)
 
 	return withellipses and (str .. '...') or str
 end
+
+local simpleTimestampPattern = "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)"
+function string.ToTime(str)
+    local num = 0
+    local year, month, day, hour, min, sec = str:match(simpleTimestampPattern)
+
+    return os.time({
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+        min = min,
+        sec = sec
+    })
+end
+
+-- Like string.NiceTime but for timestamps: 2021-04-08 00:56:24
+function string.NiceDate(str)
+    return string.NiceTime(string.ToTime(str))
+end

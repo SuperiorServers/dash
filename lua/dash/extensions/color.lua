@@ -52,3 +52,16 @@ end
 function COLOR:Lerp(fraction, from, to)
 	self.r, self.g, self.b = Lerp(fraction, from.r, to.r), Lerp(fraction, from.g, to.g), Lerp(fraction, from.b, to.b), Lerp(fraction, from.a, to.a)
 end
+
+function COLOR:IsLight()
+	local _, _, l = ColorToHSL(self)
+	return l >= .5
+end
+
+function COLOR:InverseLight(color, snap)
+	color = color or color_white
+	local _, _, l = ColorToHSL(self)
+	local h, s, _ = ColorToHSL(color)
+
+	return HSLToColor(h, s, snap and math.Round(1 - l) or (1 - l))
+end

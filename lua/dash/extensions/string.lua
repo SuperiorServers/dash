@@ -194,7 +194,6 @@ end
 
 local simpleTimestampPattern = "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)"
 function string.ToTime(str)
-    local num = 0
     local year, month, day, hour, min, sec = str:match(simpleTimestampPattern)
 
     return os.time({

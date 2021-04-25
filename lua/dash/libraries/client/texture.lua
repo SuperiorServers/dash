@@ -68,6 +68,7 @@ end
 
 function TEXTURE:SetPngParameters(params)
 	self.PngParameters = params
+	return self
 end
 
 function TEXTURE:EnableCache(enable)

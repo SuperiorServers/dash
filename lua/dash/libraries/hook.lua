@@ -4,7 +4,7 @@ local isfunction 	= isfunction
 local IsValid 		= IsValid
 
 local hook_callbacks = {}
-local hook_mapping   = {}
+local hook_mapping   = {} -- Bidirectional mapping between indexes and ids (ids cannot be numbers)
 
 local function GetTable() -- This function is now slow
 	local ret = {}
@@ -131,6 +131,7 @@ local function Add(name, id, callback)
 	local mapping = hook_mapping[name]
 
 	if (not isstring(id)) then
+		assert(not isnumber(id))
 		local orig = callback
 		callback = function(...)
 			if IsValid(id) then

@@ -90,7 +90,7 @@ local function Remove(name, id)
 			hook_callbacks[name] = nil
 		end
 	else
-		-- Replace it with a "gap function" - when it is called later, it will pop the last element off, call it, and replace itself
+		-- Replace it with a "gap function" - when it is called later, it will pop the last callback off, call it, and replace itself
 		callbacks[index] = function(...)
 			local count = callbacks[0]
 			assert(count > index)
@@ -122,13 +122,16 @@ local function Add(name, id, callback)
 		return
 	end
 
-	local callbacks = hook_callbacks[name]
+	local callbacks, mapping = hook_callbacks[name], hook_mapping[name]
 	if (callbacks == nil) then
 		callbacks = {[0] = 0}
-		hook_callbacks[name], hook_mapping[name] = callbacks, {}
-	end
+		hook_callbacks[name] = callbacks
 
-	local mapping = hook_mapping[name]
+		if (mapping == nil) then
+			mapping = {}
+			hook_mapping[name] = mapping
+		end
+	end
 
 	if (not isstring(id)) then
 		assert(not isnumber(id))

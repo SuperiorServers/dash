@@ -65,7 +65,6 @@ local net_ReadUInt 	= net.ReadUInt
 local net_Start 	= net.Start
 local net_Send 		= (SERVER) and net.Send or net.SendToServer
 local net_Broadcast = net.Broadcast
-local player_GetAll = player.GetAll
 local sorted_pairs 	= SortedPairsByMemberValue
 
 function nw.Register(var) -- You must always call this on both the client and server. It will serioulsy break shit if you don't.
@@ -149,11 +148,11 @@ end
 function NETVAR:Accessor(name)
 	name = name or self.Name
 	if SERVER then
-		ENTITY["Set" .. name] = function(ent, value)
+		ENTITY['Set' .. name] = function(ent, value)
 			ent:SetNetVar(self.Name, value)
 		end
 	end
-	ENTITY["Get" .. name] = function(ent)
+	ENTITY['Get' .. name] = function(ent)
 		return ent:GetNetVar(self.Name)
 	end
 	return self
